@@ -1,0 +1,46 @@
+{
+  "name": "orms-overview",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "NODE_PATH=src NODE_ENV=development ts-node-dev src/index.ts",
+    "start:prod": "NODE_PATH=src NODE_ENV=production ts-node src/index.ts",
+    "db": "rake-db",
+    "db:seeds": "NODE_PATH=src ts-node seeds.ts",
+    "lint": "eslint \"src/**/*.ts\"",
+    "lint:fix": "eslint \"src/**/*.ts\" --fix",
+    "test": "NODE_PATH=src jest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@typescript-eslint/eslint-plugin": "^4.18.0",
+    "@typescript-eslint/parser": "^4.18.0",
+    "bcrypt": "^5.0.1",
+    "dotenv": "^8.2.0",
+    "eslint": "^7.22.0",
+    "eslint-config-prettier": "^8.1.0",
+    "eslint-plugin-prettier": "^3.3.1",
+    "fastify": "^3.13.0",
+    "fishery": "^1.2.0",
+    "jsonwebtoken": "^8.5.1",
+    "pg": "^8.5.1",
+    "pg-hstore": "^2.3.3",
+    "prettier": "^2.2.1",
+    "sequelize": "^6.5.0",
+    "slugify": "^1.4.7",
+    "ts-jest": "^26.5.4",
+    "yup": "^0.32.9"
+  },
+  "devDependencies": {
+    "@types/jest": "^26.0.21",
+    "@types/node": "^14.14.33",
+    "@types/pg": "^7.14.11",
+    "jest": "^26.6.3",
+    "rake-db": "^1.2.12",
+    "ts-node-dev": "^1.1.6",
+    "typescript": "^4.2.3"
+  }
+}

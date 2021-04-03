@@ -10,7 +10,9 @@
     "db:seeds": "NODE_PATH=src ts-node seeds.ts",
     "lint": "eslint \"src/**/*.ts\"",
     "lint:fix": "eslint \"src/**/*.ts\" --fix",
-    "test": "NODE_PATH=src jest"
+    "test": "NODE_PATH=src jest",
+    "test:sequelize": "ORM=sequelize NODE_PATH=src jest",
+    "test:typeorm": "ORM=typeorm NODE_PATH=src jest"
   },
   "keywords": [],
   "author": "",
@@ -29,13 +31,17 @@
     "pg": "^8.5.1",
     "pg-hstore": "^2.3.3",
     "prettier": "^2.2.1",
+    "reflect-metadata": "^0.1.13",
     "sequelize": "^6.5.0",
     "slugify": "^1.4.7",
     "ts-jest": "^26.5.4",
+    "typeorm": "^0.2.31",
     "yup": "^0.32.9"
   },
   "devDependencies": {
+    "@types/bcrypt": "^3.0.0",
     "@types/jest": "^26.0.21",
+    "@types/jsonwebtoken": "^8.5.1",
     "@types/node": "^14.14.33",
     "@types/pg": "^7.14.11",
     "jest": "^26.6.3",

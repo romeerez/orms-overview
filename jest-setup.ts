@@ -5,12 +5,16 @@ import {
   rollbackTransaction,
   closePg,
 } from 'tests/utils/patch-pg';
-import { orms } from 'orms/orms';
 
 patchPgClient();
 
-beforeAll(() => {
-  Object.keys(orms).forEach((key) => orms[key].initialize());
+import { orms } from 'orms/orms';
+import { OrmName } from 'orms/types';
+
+const ormName = (process.env.ORM || 'sequelize') as OrmName;
+
+beforeAll(async () => {
+  await orms[ormName].initialize();
 });
 
 beforeEach(async () => {
@@ -23,5 +27,4 @@ afterEach(async () => {
 
 afterAll(async () => {
   closePg();
-  Object.keys(orms).forEach((key) => orms[key].close());
 });

@@ -14,6 +14,7 @@ import { articleFactory } from 'tests/factories/article.factory';
 import { articlesSchema, articleSchema } from 'tests/utils/schemas';
 import { currentUser, userFactory } from 'tests/factories/user.factory';
 import { randomString } from 'tests/utils/randomString';
+import { ArticleForResponse } from 'app/article/article.types';
 
 describe('articles endpoints', () => {
   describe('GET /articles', () => {
@@ -26,8 +27,14 @@ describe('articles endpoints', () => {
 
       expect(data.articlesCount).toEqual(21);
       expect(data.articles.length).toEqual(20);
-      expect(data.articles.some(({ author }) => author.following)).toBe(false);
-      expect(data.articles.some(({ favorited }) => favorited)).toBe(false);
+      expect(
+        data.articles.some(
+          ({ author }: ArticleForResponse) => author.following,
+        ),
+      ).toBe(false);
+      expect(
+        data.articles.some(({ favorited }: ArticleForResponse) => favorited),
+      ).toBe(false);
     });
 
     it('should list articles with correct tags', async () => {
@@ -52,10 +59,9 @@ describe('articles endpoints', () => {
 
       const { data } = await get('/articles', { schema: articlesSchema });
 
-      expect(data.articles.map(({ favorited }) => favorited)).toEqual([
-        true,
-        false,
-      ]);
+      expect(
+        data.articles.map(({ favorited }: ArticleForResponse) => favorited),
+      ).toEqual([true, false]);
     });
 
     it('should list all articles with correct author following field', async () => {
@@ -69,10 +75,9 @@ describe('articles endpoints', () => {
 
       const { data } = await get('/articles', { schema: articlesSchema });
 
-      expect(data.articles.map(({ author }) => author.following)).toEqual([
-        false,
-        true,
-      ]);
+      expect(
+        data.articles.map(({ author }: ArticleForResponse) => author.following),
+      ).toEqual([false, true]);
     });
 
     it('supports filtering by tag', async () => {
@@ -135,7 +140,9 @@ describe('articles endpoints', () => {
 
       expect(data.articlesCount).toEqual(15);
       expect(data.articles.length).toEqual(10);
-      expect(data.articles.map((article) => article.title)).toEqual(
+      expect(
+        data.articles.map((article: ArticleForResponse) => article.title),
+      ).toEqual(
         articles
           .reverse()
           .slice(5)
@@ -180,7 +187,9 @@ describe('articles endpoints', () => {
       );
 
       expect(data.articlesCount).toBe(5);
-      expect(data.articles.map(({ title }) => title)).toEqual(
+      expect(
+        data.articles.map(({ title }: ArticleForResponse) => title),
+      ).toEqual(
         articles.slice(offset, offset + limit).map(({ title }) => title),
       );
     });

@@ -1,12 +1,12 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { User } from 'app/user/user.types';
-import { OrmInterface } from 'orms/types';
 
-export type Request = FastifyRequest & { orm: OrmInterface };
+export type RequestHandler = (
+  request: FastifyRequest,
+  reply: FastifyReply,
+) => void | Promise<unknown>;
 
-export type RequestHandler = (request: Request, reply: FastifyReply) => unknown;
-
-export type AuthorizedRequest = Request & {
+export type AuthorizedRequest = FastifyRequest & {
   user: User;
   userToken: string;
 };

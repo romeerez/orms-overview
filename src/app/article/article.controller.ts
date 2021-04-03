@@ -5,6 +5,7 @@ import { getCurrentUser } from 'lib/currentUser';
 import * as response from 'app/article/article.response';
 import { articleParams } from 'app/article/article.params';
 import { authUser } from 'lib/decorators';
+import slugify from 'slugify';
 
 const slugParam = object({
   slug: articleParams.slug.required(),
@@ -67,7 +68,10 @@ const createArticleParams = object({
 export const createArticle = authUser(async (request) => {
   const { article: params } = validate(createArticleParams, request.body);
   const article = await request.orm.articleRepo.createArticle(
-    params,
+    {
+      ...params,
+      slug: slugify(params.title, { lower: true }),
+    },
     request.user,
   );
   return response.article(article);

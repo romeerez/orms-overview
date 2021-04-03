@@ -1,6 +1,6 @@
 import { Migration } from 'rake-db';
 
-export const change = (db: Migration, up: boolean) => {
+export const change = (db: Migration) => {
   db.createTable('article', (t) => {
     t.integer('authorId', { index: true }).required().references('user');
     t.string('slug', { unique: true }).required();

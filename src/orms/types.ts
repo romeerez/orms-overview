@@ -4,11 +4,11 @@ import { CommentForResponse } from 'app/comment/comment.types';
 import { Tag } from 'app/tag/tag.types';
 import { Profile } from 'app/profile/profile.types';
 
-export type OrmName = 'sequelize';
+export type OrmName = 'sequelize' | 'typeorm';
 
 export type OrmInterface = {
-  initialize(): Promise<void> | void;
-  close(): Promise<void> | void;
+  initialize(): Promise<unknown> | unknown;
+  close(): Promise<unknown> | unknown;
 
   articleRepo: ArticleRepo;
   commentRepo: CommentRepo;
@@ -27,7 +27,7 @@ export type ArticleRepo = {
       limit?: number;
       offset?: number;
     },
-    currentUser: User,
+    currentUser?: User,
   ): Promise<{ articles: ArticleForResponse[]; count: number }>;
 
   getArticleBySlug(
@@ -36,7 +36,7 @@ export type ArticleRepo = {
   ): Promise<ArticleForResponse>;
 
   createArticle(
-    params: Pick<Article, 'title' | 'description' | 'body'> & {
+    params: Pick<Article, 'title' | 'slug' | 'description' | 'body'> & {
       tagList: string[];
     },
     currentUser: User,
@@ -93,9 +93,9 @@ export type ProfileRepo = {
 export type UserRepo = {
   create(params: Omit<UserWithPassword, 'id'>): Promise<User>;
 
-  login(params: Pick<UserWithPassword, 'email' | 'password'>): Promise<User>;
+  findByEmail(email: string): Promise<UserWithPassword | undefined>;
 
-  findById(id: number): Promise<UserWithPassword>;
+  findById(id: number): Promise<UserWithPassword | undefined>;
 
   updateUser(
     user: User,

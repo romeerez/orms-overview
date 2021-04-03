@@ -27,7 +27,9 @@ export const request = async (
   url: string,
   { user, token, body, schema }: Options = {},
 ): Promise<Result> => {
-  const headers: IncomingHttpHeaders = {};
+  const headers: IncomingHttpHeaders = {
+    'x-orm': process.env.ORM,
+  };
 
   if (token || user !== false) {
     headers.authorization = `Token ${

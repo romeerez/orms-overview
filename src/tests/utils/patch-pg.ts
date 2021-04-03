@@ -8,18 +8,19 @@ let poolConnection: any;
 export const patchPgClient = () => {
   const { connect, query } = Client.prototype;
 
-  Client.prototype.connect = async function (cb) {
+  Client.prototype.connect = async function (this: any, cb: any) {
     if (connection) return cb();
 
-    connection = await connect.call(this);
+    connection = await (connect as any).call(this);
     if (cb) cb();
     return;
   } as typeof Client.prototype.connect;
 
   const poolConnect = Pool.prototype.connect;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async function getPoolConnection(cb: (...args: any[]) => void) {
-    if (!poolConnection) poolConnection = await poolConnect.call(this);
+  async function getPoolConnection(this: any, cb: (...args: any[]) => void) {
+    if (!poolConnection)
+      poolConnection = await (poolConnect as any).call(this as any);
 
     if (cb) cb(undefined, poolConnection, () => {});
 
@@ -30,7 +31,11 @@ export const patchPgClient = () => {
 
   Pool.prototype.connect = getPoolConnection as typeof Pool.prototype.connect;
 
-  Client.prototype.query = async function (input, ...args) {
+  Client.prototype.query = async function (
+    this: any,
+    input: any,
+    ...args: any[]
+  ) {
     let sql = input.trim();
 
     if (sql.startsWith('START TRANSACTION') || sql.startsWith('BEGIN')) {
@@ -64,8 +69,8 @@ export const patchPgClient = () => {
       }
     }
 
-    const connection = await getPoolConnection.call(this);
-    return await query.call(connection, sql, ...args);
+    const connection = await (getPoolConnection as any).call(this);
+    return await (query as any).call(connection, sql, ...args);
   } as typeof Client.prototype.query;
 };
 

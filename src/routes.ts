@@ -3,8 +3,9 @@ import * as profile from 'app/profile/profile.controller';
 import * as article from 'app/article/article.controller';
 import * as comment from 'app/comment/comment.controller';
 import * as tag from 'app/tag/tag.controller';
+import { FastifyInstance } from 'fastify';
 
-export default async function routes(fastify) {
+export default async function routes(fastify: FastifyInstance) {
   fastify.post('/users', user.register);
   fastify.post('/users/login', user.login);
   fastify.get('/user', user.getCurrentUser);

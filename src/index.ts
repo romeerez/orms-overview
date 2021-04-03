@@ -5,13 +5,14 @@ import config from 'config';
 import errorHandler from 'errorHandler';
 import { orms } from 'orms/orms';
 import { OrmName } from 'orms/types';
-import { Request } from 'types';
+// for typeorm
+import 'reflect-metadata';
 
 const server = fastify();
 
 server.register(routes);
 
-server.addHook('onRequest', async (req: Request) => {
+server.addHook('onRequest', async (req, res) => {
   if (
     req.headers['content-type'] === 'application/json' &&
     req.headers['content-length'] === '0'
@@ -26,11 +27,16 @@ server.addHook('onRequest', async (req: Request) => {
   req.orm = orm;
 });
 
-server.addContentTypeParser('empty', ((req, res, done) => {
+server.addContentTypeParser('empty', ((
+  req: unknown,
+  res: unknown,
+  done: () => unknown,
+) => {
   done();
 }) as any); // eslint-disable-line
 
-server.setErrorHandler(errorHandler);
+// eslint-disable-next-line
+server.setErrorHandler(errorHandler as any);
 
 if (!config.env.test) {
   server.listen(process.env.PORT || 3000, (err, address) => {

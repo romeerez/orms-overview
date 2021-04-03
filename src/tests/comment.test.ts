@@ -2,6 +2,7 @@ import { commentFactory } from 'tests/factories/comment.factory';
 import {
   del,
   delPublic,
+  get,
   getPublic,
   post,
   postPublic,
@@ -10,9 +11,9 @@ import {
   testUnauthorized,
 } from 'tests/utils/request';
 import { articleFactory } from 'tests/factories/article.factory';
-import { commentsSchema } from 'tests/utils/schemas';
+import { commentSchema, commentsSchema } from 'tests/utils/schemas';
 import { randomString } from 'tests/utils/randomString';
-import { userFactory } from 'tests/factories/user.factory';
+import { currentUser, userFactory } from 'tests/factories/user.factory';
 
 describe('comment endpoints', () => {
   describe('GET /articles/:slug/comments', () => {
@@ -29,7 +30,7 @@ describe('comment endpoints', () => {
         schema: commentsSchema,
       });
 
-      expect(data.comments.map(({ id }) => id)).toEqual(
+      expect(data.comments.map(({ id }: { id: number }) => id)).toEqual(
         comments.reverse().map(({ id }) => id),
       );
     });
@@ -79,6 +80,26 @@ describe('comment endpoints', () => {
         },
       }));
       expect(data.errors.body).toBe('body must be at most 100000 characters');
+    });
+
+    it('creates comment', async () => {
+      const article = await articleFactory.create();
+
+      await post(`/articles/${article.slug}/comments`, {
+        body: {
+          comment: {
+            body: 'comment',
+          },
+        },
+        schema: commentSchema,
+      });
+
+      const { data } = await get(`/articles/${article.slug}/comments`, {
+        schema: commentsSchema,
+      });
+
+      expect(data.comments[0].body).toBe('comment');
+      expect(data.comments[0].author.username).toBe(currentUser.username);
     });
   });
 

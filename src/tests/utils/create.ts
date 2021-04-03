@@ -1,11 +1,13 @@
 import pgPromise from 'pg-promise';
-import { Client } from 'pg';
+import { Client, Pool } from 'pg';
 
 const pgp = pgPromise({
   capSQL: true,
 });
 
-export const db = new Client({
+const Connection = process.env.ORM !== 'sequelize' ? Pool : Client;
+
+export const db = new Connection({
   connectionString: process.env.DATABASE_URL_TEST,
 });
 
@@ -20,7 +22,7 @@ export const create = async <T extends object | object[]>(
     onConflict?: string;
   } = {},
 ): Promise<T> => {
-  const { rows } = await db.query(
+  const result = await db.query(
     `${pgp.helpers.insert(
       record,
       Object.keys(Array.isArray(record) ? record[0] : record),
@@ -28,5 +30,6 @@ export const create = async <T extends object | object[]>(
     )}${onConflict ? ` ON CONFLICT ${onConflict}` : ''} RETURNING *`,
   );
 
+  const { rows } = result;
   return Array.isArray(record) ? rows : rows[0];
 };

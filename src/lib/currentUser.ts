@@ -1,9 +1,9 @@
 import { User } from 'app/user/user.types';
 import { verifyToken } from 'lib/jwt';
-import { Request } from 'types';
+import { FastifyRequest } from 'fastify';
 
 export const getCurrentUserAndToken = async (
-  request: Request,
+  request: FastifyRequest,
 ): Promise<{ user: User; token: string } | undefined> => {
   try {
     let token = request.headers.authorization;
@@ -19,13 +19,12 @@ export const getCurrentUserAndToken = async (
     const user = await request.orm.userRepo.findById(id);
     if (!user) return;
 
-    delete user.password;
     return { user, token };
   } catch (error) {}
 };
 
 export const getCurrentUser = async (
-  request: Request,
+  request: FastifyRequest,
 ): Promise<User | undefined> => {
   const result = await getCurrentUserAndToken(request);
   if (result) return result.user;

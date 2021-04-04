@@ -1,5 +1,6 @@
 import { Factory } from 'fishery';
-import { create, db } from 'tests/utils/create';
+import { db } from 'tests/utils/db';
+import { create } from 'tests/utils/create';
 import { Article } from 'app/article/article.types';
 import { User } from 'app/user/user.types';
 import { Tag } from 'app/tag/tag.types';
@@ -27,7 +28,7 @@ export const articleFactory = Factory.define<
 
       await create(
         'articleTag',
-        tags.map(({ id }) => ({
+        tags.map(({ id }: { id: number }) => ({
           articleId: article.id,
           tagId: id,
         })),

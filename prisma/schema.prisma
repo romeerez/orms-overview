@@ -1,0 +1,101 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["orderByRelation"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL_TEST")
+}
+
+model article {
+  id                  Int                   @id @default(autoincrement())
+  authorId            Int
+  slug                String                @unique
+  title               String
+  description         String
+  body                String
+  favoritesCount      Int                   @default(0)
+  createdAt           DateTime              @default(now()) @db.Timestamp(6)
+  updatedAt           DateTime              @default(now()) @db.Timestamp(6)
+  user                user                  @relation(fields: [authorId], references: [id])
+  articleTag          articleTag[]
+  comment             comment[]
+  userArticleFavorite userArticleFavorite[]
+
+  @@index([authorId], name: "articleAuthorIdIndex")
+}
+
+model articleTag {
+  id        Int     @id @default(autoincrement())
+  articleId Int
+  tagId     Int
+  article   article @relation(fields: [articleId], references: [id])
+  tag       tag     @relation(fields: [tagId], references: [id])
+
+  @@unique([articleId, tagId], name: "articleTagArticleIdTagIdIndex")
+  @@index([articleId], name: "articleTagArticleIdIndex")
+  @@index([tagId], name: "articleTagTagIdIndex")
+}
+
+model comment {
+  id        Int      @id @default(autoincrement())
+  authorId  Int
+  articleId Int
+  body      String
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @default(now()) @db.Timestamp(6)
+  article   article  @relation(fields: [articleId], references: [id])
+  user      user     @relation(fields: [authorId], references: [id])
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model schemaMigrations {
+  version String
+
+  @@ignore
+}
+
+model tag {
+  id         Int          @id @default(autoincrement())
+  tag        String       @unique
+  articleTag articleTag[]
+}
+
+model user {
+  id                                      Int                   @id @default(autoincrement())
+  email                                   String                @unique
+  username                                String                @unique
+  password                                String
+  bio                                     String?
+  image                                   String?
+  article                                 article[]
+  comment                                 comment[]
+  userArticleFavorite                     userArticleFavorite[]
+  userFollow_userTouserFollow_followerId  userFollow[]          @relation("userTouserFollow_followerId")
+  userFollow_userTouserFollow_followingId userFollow[]          @relation("userTouserFollow_followingId")
+}
+
+model userArticleFavorite {
+  id        Int     @id @default(autoincrement())
+  userId    Int
+  articleId Int
+  article   article @relation(fields: [articleId], references: [id])
+  user      user    @relation(fields: [userId], references: [id])
+
+  @@unique([userId, articleId], name: "userArticleFavoriteUserIdArticleIdIndex")
+  @@index([articleId], name: "userArticleFavoriteArticleIdIndex")
+  @@index([userId], name: "userArticleFavoriteUserIdIndex")
+}
+
+model userFollow {
+  id                                Int  @id @default(autoincrement())
+  followerId                        Int
+  followingId                       Int
+  user_userTouserFollow_followerId  user @relation("userTouserFollow_followerId", fields: [followerId], references: [id])
+  user_userTouserFollow_followingId user @relation("userTouserFollow_followingId", fields: [followingId], references: [id])
+
+  @@unique([followerId, followingId], name: "userFollowFollowerIdFollowingIdIndex")
+  @@index([followerId], name: "userFollowFollowerIdIndex")
+  @@index([followingId], name: "userFollowFollowingIdIndex")
+}

@@ -1,5 +1,6 @@
 import 'dotenv/config';
-import { db, create } from 'tests/utils/create';
+import { db } from 'tests/utils/db';
+import { create } from 'tests/utils/create';
 import { currentUser } from 'tests/factories/user.factory';
 import { encryptPassword } from 'lib/password';
 

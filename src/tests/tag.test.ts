@@ -1,8 +1,20 @@
 import { articleFactory } from 'tests/factories/article.factory';
 import { del, getPublic, put } from 'tests/utils/request';
 import { tagsSchema } from 'tests/utils/schemas';
+import { db } from 'tests/utils/db';
+import { clearDatabase } from 'tests/utils/for-prisma';
 
 describe('tag endpoints', () => {
+  clearDatabase();
+
+  beforeEach(async () => {
+    if (process.env.ORM !== 'prisma') return;
+
+    await db.query('DELETE FROM "articleTag"');
+    await db.query('DELETE FROM "tag"');
+    await db.query('DELETE FROM "article"');
+  });
+
   it('lists all tags', async () => {
     const article = await articleFactory.create({ tagList: ['one', 'two'] });
 

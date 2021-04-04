@@ -2,19 +2,33 @@ import { get, postPublic, put } from 'tests/utils/request';
 import { userSchema } from 'tests/utils/schemas';
 import { randomString } from 'tests/utils/randomString';
 import { currentUser } from 'tests/factories/user.factory';
+import { db } from 'tests/utils/db';
+import { clearDatabase } from 'tests/utils/for-prisma';
 
 describe('user endpoints', () => {
+  clearDatabase();
+
   describe('POST /users', () => {
-    test('register ok', async () => {
-      await postPublic('/users', {
-        body: {
-          user: {
-            username: 'create-user',
-            email: 'email@example.com',
-            password: 'password',
+    describe('registration', () => {
+      afterAll(async () => {
+        if (process.env.ORM === 'prisma') {
+          await db.query(
+            `DELETE FROM "user" WHERE "email" = 'email@example.com'`,
+          );
+        }
+      });
+
+      it('should register user', async () => {
+        await postPublic('/users', {
+          body: {
+            user: {
+              username: 'create-user',
+              email: 'email@example.com',
+              password: 'password',
+            },
           },
-        },
-        schema: userSchema,
+          schema: userSchema,
+        });
       });
     });
 

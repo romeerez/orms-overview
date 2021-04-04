@@ -1,7 +1,6 @@
 import { UserRepo } from 'orms/types';
 import { User } from 'orms/typeorm/user/user.model';
 import { getRepository } from 'typeorm';
-import { UserWithPassword } from 'app/user/user.types';
 import { UniqueViolationError } from 'errors';
 
 export const userRepo: UserRepo = {

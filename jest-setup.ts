@@ -12,19 +12,24 @@ import { orms } from 'orms/orms';
 import { OrmName } from 'orms/types';
 
 const ormName = (process.env.ORM || 'sequelize') as OrmName;
+const orm = orms[ormName];
+if (orm.initialize) {
+  beforeAll(async () => {
+    await orm.initialize!();
+  });
+}
 
-beforeAll(async () => {
-  await orms[ormName].initialize();
-});
+if (ormName !== 'prisma') {
+  beforeEach(async () => {
+    await startTransaction();
+  });
 
-beforeEach(async () => {
-  await startTransaction();
-});
-
-afterEach(async () => {
-  await rollbackTransaction();
-});
+  afterEach(async () => {
+    await rollbackTransaction();
+  });
+}
 
 afterAll(async () => {
+  if (orm.close) orm.close();
   closePg();
 });

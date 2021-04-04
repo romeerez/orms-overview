@@ -27,7 +27,7 @@ export type UserArticleFavorite = {
   articleId: number;
 };
 
-export type ArticleForResponse = Article & {
+export type ArticleForResponse = Omit<Article, 'authorId'> & {
   author: Profile;
   tagList: string[];
   favorited: boolean;

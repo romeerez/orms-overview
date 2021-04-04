@@ -14,8 +14,20 @@ import { articleFactory } from 'tests/factories/article.factory';
 import { commentSchema, commentsSchema } from 'tests/utils/schemas';
 import { randomString } from 'tests/utils/randomString';
 import { currentUser, userFactory } from 'tests/factories/user.factory';
+import { db } from 'tests/utils/db';
+import { clearDatabase } from 'tests/utils/for-prisma';
 
 describe('comment endpoints', () => {
+  beforeAll(async () => {
+    if (process.env.ORM !== 'prisma') return;
+
+    await db.query('DELETE FROM "comment"');
+    await db.query('DELETE FROM "article"');
+    await db.query('DELETE FROM "user"');
+  });
+
+  clearDatabase();
+
   describe('GET /articles/:slug/comments', () => {
     it('should list article comments ordered by createdAt', async () => {
       const article = await articleFactory.create();

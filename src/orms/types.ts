@@ -4,11 +4,11 @@ import { CommentForResponse } from 'app/comment/comment.types';
 import { Tag } from 'app/tag/tag.types';
 import { Profile } from 'app/profile/profile.types';
 
-export type OrmName = 'sequelize' | 'typeorm';
+export type OrmName = 'sequelize' | 'typeorm' | 'prisma';
 
 export type OrmInterface = {
-  initialize(): Promise<unknown> | unknown;
-  close(): Promise<unknown> | unknown;
+  initialize?(): Promise<unknown> | unknown;
+  close?(): Promise<unknown> | unknown;
 
   articleRepo: ArticleRepo;
   commentRepo: CommentRepo;

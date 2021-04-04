@@ -1,14 +1,8 @@
 import pgPromise from 'pg-promise';
-import { Client, Pool } from 'pg';
+import { db } from 'tests/utils/db';
 
 const pgp = pgPromise({
   capSQL: true,
-});
-
-const Connection = process.env.ORM !== 'sequelize' ? Pool : Client;
-
-export const db = new Connection({
-  connectionString: process.env.DATABASE_URL_TEST,
 });
 
 // eslint-disable-next-line @typescript-eslint/ban-types

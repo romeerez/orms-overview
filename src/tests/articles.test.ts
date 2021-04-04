@@ -15,8 +15,25 @@ import { articlesSchema, articleSchema } from 'tests/utils/schemas';
 import { currentUser, userFactory } from 'tests/factories/user.factory';
 import { randomString } from 'tests/utils/randomString';
 import { ArticleForResponse } from 'app/article/article.types';
+import { clearDatabase } from 'tests/utils/for-prisma';
+import { db } from 'tests/utils/db';
 
 describe('articles endpoints', () => {
+  beforeEach(async () => {
+    if (process.env.ORM !== 'prisma') return;
+
+    await db.query(`DELETE FROM "articleTag"`);
+    await db.query(`DELETE FROM "userArticleFavorite"`);
+    await db.query(`DELETE FROM "article"`);
+    await db.query(`DELETE FROM "tag"`);
+    await db.query('DELETE FROM "userFollow"');
+    await db.query(
+      `DELETE FROM "user" WHERE "email" != '${currentUser.email}'`,
+    );
+  });
+
+  clearDatabase();
+
   describe('GET /articles', () => {
     it('should list all articles ordered by createdAt, default limit is 20', async () => {
       await Promise.all(
@@ -393,7 +410,7 @@ describe('articles endpoints', () => {
     });
 
     it('deletes article', async () => {
-      const article = await articleFactory.create();
+      const article = await articleFactory.create({ tagList: ['tag'] });
       await del(`/articles/${article.slug}`);
 
       await testNotFound(get(`/articles/${article.slug}`));

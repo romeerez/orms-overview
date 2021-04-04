@@ -20,7 +20,9 @@ export const getCurrentUserAndToken = async (
     if (!user) return;
 
     return { user, token };
-  } catch (error) {}
+  } catch (error) {
+    console.error(error);
+  }
 };
 
 export const getCurrentUser = async (

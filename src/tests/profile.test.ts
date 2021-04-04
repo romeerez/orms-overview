@@ -10,8 +10,19 @@ import {
 } from 'tests/utils/request';
 import { profileSchema } from 'tests/utils/schemas';
 import { currentUser, userFactory } from 'tests/factories/user.factory';
+import { db } from 'tests/utils/db';
+import { clearDatabase } from 'tests/utils/for-prisma';
 
 describe('profile endpoints', () => {
+  beforeAll(async () => {
+    if (process.env.ORM !== 'prisma') return;
+
+    await db.query('DELETE FROM "userFollow"');
+    await db.query('DELETE FROM "user"');
+  });
+
+  clearDatabase();
+
   describe('GET /profiles/:username', () => {
     test('not found', async () => {
       await testNotFound(getPublic(`/profiles/lalala`));

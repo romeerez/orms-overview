@@ -13,6 +13,7 @@
     "test": "NODE_PATH=src jest",
     "test:sequelize": "ORM=sequelize NODE_PATH=src jest",
     "test:typeorm": "ORM=typeorm NODE_PATH=src jest",
+    "test:knex": "ORM=knex DEBUG=knex:query NODE_PATH=src jest",
     "test:prisma": "ORM=prisma NODE_PATH=src jest --maxWorkers=1"
   },
   "keywords": [],

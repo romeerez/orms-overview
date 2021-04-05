@@ -1,19 +1,41 @@
-import { Client, Pool } from 'pg';
+import { Client, Pool, QueryArrayConfig, QueryConfig } from 'pg';
 import config from 'config';
 
 let savePoints: string[] | undefined;
-let connection: any;
+let client: Client;
 let poolConnection: any;
+let connected = false;
+let connectPromise: Promise<void>;
 
 export const patchPgClient = () => {
   const { connect, query } = Client.prototype;
 
-  Client.prototype.connect = async function (this: any, cb: any) {
-    if (connection) return cb();
+  Client.prototype.connect = async function (
+    this: Client,
+    cb: (err: Error | undefined, connection: Client) => void,
+  ) {
+    if (!client) client = this;
 
-    connection = await (connect as any).call(this);
-    if (cb) cb();
-    return;
+    if (connected) {
+      if (cb) cb(undefined, client);
+      return;
+    }
+
+    if (connectPromise) {
+      await connectPromise;
+      if (cb) cb(undefined, client);
+      return;
+    }
+
+    connectPromise = new Promise((resolve, reject) => {
+      connect.call(client, (err) => {
+        if (err) reject(err);
+        else {
+          connected = true;
+          if (cb) cb(undefined, client);
+        }
+      });
+    });
   } as typeof Client.prototype.connect;
 
   const poolConnect = Pool.prototype.connect;
@@ -32,11 +54,12 @@ export const patchPgClient = () => {
   Pool.prototype.connect = getPoolConnection as typeof Pool.prototype.connect;
 
   Client.prototype.query = async function (
-    this: any,
-    input: any,
+    inputArg: string | QueryConfig<any> | QueryArrayConfig<any>,
     ...args: any[]
   ) {
-    let sql = input.trim();
+    let input = inputArg;
+    let sql = typeof input === 'string' ? input : input.text;
+    sql = sql.trim();
 
     if (sql.startsWith('START TRANSACTION') || sql.startsWith('BEGIN')) {
       if (savePoints) {
@@ -69,9 +92,15 @@ export const patchPgClient = () => {
       }
     }
 
+    if (typeof input === 'string') {
+      input = sql;
+    } else {
+      input.text = sql;
+    }
+
     const connection = await (getPoolConnection as any).call(this);
-    return await (query as any).call(connection, sql, ...args);
-  } as typeof Client.prototype.query;
+    return await (query as any).call(connection, input, ...args);
+  };
 };
 
 export const startTransaction = async (
@@ -89,5 +118,5 @@ export const rollbackTransaction = async (
 
 export const closePg = () => {
   poolConnection?.end();
-  connection?.end();
+  client?.end();
 };

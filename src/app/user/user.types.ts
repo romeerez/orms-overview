@@ -2,6 +2,14 @@ export type User = {
   id: number;
   email: string;
   username: string;
+  bio?: string;
+  image?: string;
+};
+
+export type UserWithNulls = {
+  id: number;
+  email: string;
+  username: string;
   bio?: string | null;
   image?: string | null;
 };

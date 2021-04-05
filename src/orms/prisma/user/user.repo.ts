@@ -1,6 +1,6 @@
 import { UserRepo } from 'orms/types';
 import { client } from 'orms/prisma/client';
-import { NotFoundError, UniqueViolationError } from 'errors';
+import { UniqueViolationError } from 'errors';
 
 export const userRepo: UserRepo = {
   async create(params) {

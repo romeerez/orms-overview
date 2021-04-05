@@ -294,6 +294,8 @@ describe('articles endpoints', () => {
     });
 
     it('creates article', async () => {
+      await articleFactory.create({ tagList: ['one'] });
+
       const params = {
         title: 'title',
         description: 'description',

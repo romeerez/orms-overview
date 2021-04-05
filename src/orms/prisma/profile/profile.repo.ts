@@ -1,10 +1,13 @@
 import { ProfileRepo } from 'orms/types';
-import { User } from 'app/user/user.types';
+import { User, UserWithNulls } from 'app/user/user.types';
 import { client } from 'orms/prisma/client';
 import { Profile } from 'app/profile/profile.types';
 import { NotFoundError } from 'errors';
 
-export type ProfileResult = Pick<User, 'id' | 'username' | 'bio' | 'image'> & {
+export type ProfileResult = Pick<
+  UserWithNulls,
+  'id' | 'username' | 'bio' | 'image'
+> & {
   userFollow_userTouserFollow_followingId?: unknown[];
 };
 
@@ -12,6 +15,8 @@ export const mapProfileResult = (
   user: ProfileResult,
 ): Profile & { id: number } => ({
   ...user,
+  image: user.image || undefined,
+  bio: user.bio || undefined,
   following: Boolean(user.userFollow_userTouserFollow_followingId?.length),
 });
 

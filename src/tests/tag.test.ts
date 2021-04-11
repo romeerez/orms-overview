@@ -2,10 +2,10 @@ import { articleFactory } from 'tests/factories/article.factory';
 import { del, getPublic, put } from 'tests/utils/request';
 import { tagsSchema } from 'tests/utils/schemas';
 import { db } from 'tests/utils/db';
-import { clearDatabase } from 'tests/utils/for-prisma';
+import { clearDatabaseForPrisma } from 'tests/utils/for-prisma';
 
 describe('tag endpoints', () => {
-  clearDatabase();
+  clearDatabaseForPrisma();
 
   beforeEach(async () => {
     if (process.env.ORM !== 'prisma') return;

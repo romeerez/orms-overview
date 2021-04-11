@@ -15,7 +15,7 @@ import { articlesSchema, articleSchema } from 'tests/utils/schemas';
 import { currentUser, userFactory } from 'tests/factories/user.factory';
 import { randomString } from 'tests/utils/randomString';
 import { ArticleForResponse } from 'app/article/article.types';
-import { clearDatabase } from 'tests/utils/for-prisma';
+import { clearDatabaseForPrisma } from 'tests/utils/for-prisma';
 import { db } from 'tests/utils/db';
 
 describe('articles endpoints', () => {
@@ -32,7 +32,7 @@ describe('articles endpoints', () => {
     );
   });
 
-  clearDatabase();
+  clearDatabaseForPrisma();
 
   describe('GET /articles', () => {
     it('should list all articles ordered by createdAt, default limit is 20', async () => {
@@ -87,8 +87,11 @@ describe('articles endpoints', () => {
         { transient: { followedBy: [currentUser] } },
       );
       const notFollowingUser = await userFactory.create();
-      await articleFactory.create({ authorId: followingUser.id });
-      await articleFactory.create({ authorId: notFollowingUser.id });
+      await articleFactory.create({ title: 'one', authorId: followingUser.id });
+      await articleFactory.create({
+        title: 'two',
+        authorId: notFollowingUser.id,
+      });
 
       const { data } = await get('/articles', { schema: articlesSchema });
 

@@ -14,7 +14,8 @@
     "test:sequelize": "ORM=sequelize NODE_PATH=src jest",
     "test:typeorm": "ORM=typeorm NODE_PATH=src jest",
     "test:knex": "ORM=knex DEBUG=knex:query NODE_PATH=src jest",
-    "test:prisma": "ORM=prisma NODE_PATH=src jest --maxWorkers=1"
+    "test:prisma": "ORM=prisma NODE_PATH=src jest --maxWorkers=1",
+    "test:objection": "ORM=objection DEBUG=knex:query NODE_PATH=src jest"
   },
   "keywords": [],
   "author": "",
@@ -32,6 +33,7 @@
     "fishery": "^1.2.0",
     "jsonwebtoken": "^8.5.1",
     "knex": "^0.95.4",
+    "objection": "^2.2.15",
     "pg": "^8.5.1",
     "pg-hstore": "^2.3.3",
     "prettier": "^2.2.1",

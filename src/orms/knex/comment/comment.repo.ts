@@ -12,13 +12,10 @@ const buildQuery = (
 
   buildProfileQuery({ query, joinForeignKey: 'comment.authorId' }, currentUser);
 
-  if (params.id) {
-    query.where('comment.id', params.id);
-  }
+  if (params.id) query.where('comment.id', params.id);
 
-  if (params.articleSlug) {
+  if (params.articleSlug)
     query.join('article', 'article.id', 'comment.articleId');
-  }
 
   return query;
 };

@@ -4,7 +4,7 @@ import { CommentForResponse } from 'app/comment/comment.types';
 import { Tag } from 'app/tag/tag.types';
 import { Profile } from 'app/profile/profile.types';
 
-export type OrmName = 'sequelize' | 'typeorm' | 'knex' | 'prisma';
+export type OrmName = 'sequelize' | 'typeorm' | 'knex' | 'prisma' | 'objection';
 
 export type OrmInterface = {
   initialize?(): Promise<unknown> | unknown;

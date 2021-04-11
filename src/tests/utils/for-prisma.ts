@@ -17,7 +17,7 @@ const clearTables = async () => {
   await remove('user');
 };
 
-export const clearDatabase = () => {
+export const clearDatabaseForPrisma = () => {
   if (!isPrisma) return;
 
   beforeAll(async () => {

@@ -3,10 +3,10 @@ import { userSchema } from 'tests/utils/schemas';
 import { randomString } from 'tests/utils/randomString';
 import { currentUser } from 'tests/factories/user.factory';
 import { db } from 'tests/utils/db';
-import { clearDatabase } from 'tests/utils/for-prisma';
+import { clearDatabaseForPrisma } from 'tests/utils/for-prisma';
 
 describe('user endpoints', () => {
-  clearDatabase();
+  clearDatabaseForPrisma();
 
   describe('POST /users', () => {
     describe('registration', () => {
@@ -132,7 +132,7 @@ describe('user endpoints', () => {
       field
       ${'email'}
       ${'password'}
-    `('invalid email or password', async ({ field }) => {
+    `('invalid $field', async ({ field }) => {
       const { data } = await postPublic('/users/login', {
         body: {
           user: {

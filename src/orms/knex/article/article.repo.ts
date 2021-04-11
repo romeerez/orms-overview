@@ -249,10 +249,7 @@ export const articleRepo: ArticleRepo = {
   },
 
   async markAsFavoriteBySlug(slug, currentUser) {
-    const article = await db('article')
-      .select('id', 'authorId')
-      .where({ slug })
-      .first();
+    const article = await db('article').select('id').where({ slug }).first();
 
     if (!article) throw new NotFoundError();
 

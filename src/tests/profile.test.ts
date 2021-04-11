@@ -11,7 +11,7 @@ import {
 import { profileSchema } from 'tests/utils/schemas';
 import { currentUser, userFactory } from 'tests/factories/user.factory';
 import { db } from 'tests/utils/db';
-import { clearDatabase } from 'tests/utils/for-prisma';
+import { clearDatabaseForPrisma } from 'tests/utils/for-prisma';
 
 describe('profile endpoints', () => {
   beforeAll(async () => {
@@ -21,7 +21,7 @@ describe('profile endpoints', () => {
     await db.query('DELETE FROM "user"');
   });
 
-  clearDatabase();
+  clearDatabaseForPrisma();
 
   describe('GET /profiles/:username', () => {
     test('not found', async () => {

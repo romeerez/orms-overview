@@ -9,6 +9,7 @@ import { UserFollow } from 'orms/typeorm/user/userFollow.model';
 import { ArticleTag } from 'orms/typeorm/article/articleTag.model';
 import { ForbiddenError, NotFoundError } from 'errors';
 import { buildProfileQuery } from 'orms/typeorm/profile/profile.repo';
+import { ArticleForResponse } from '../../../app/article/article.types';
 
 const buildQuery = (
   params: {
@@ -176,6 +177,12 @@ const deleteUnusedTags = async (queryRunner: QueryRunner) => {
     .execute();
 };
 
+const getArticle = async (...params: Parameters<typeof buildQuery>) => {
+  const article = await buildQuery(...params);
+  if (!article) throw new NotFoundError();
+  return article as unknown as ArticleForResponse;
+};
+
 const createArticleTags = async (
   queryRunner: QueryRunner,
   article: Article,
@@ -250,10 +257,7 @@ export const articleRepo: ArticleRepo = {
   },
 
   async getArticleBySlug(slug, currentUser) {
-    const query = buildQuery({ slug }, currentUser);
-    const article = await query.getRawOne();
-    if (!article) throw new NotFoundError();
-    return article;
+    return getArticle({ slug }, currentUser);
   },
 
   async createArticle(params, currentUser) {
@@ -268,8 +272,7 @@ export const articleRepo: ArticleRepo = {
       await createArticleTags(queryRunner, article, true, params.tagList);
     });
 
-    const query = buildQuery({ id }, currentUser);
-    return query.getRawOne();
+    return await getArticle({ id }, currentUser);
   },
 
   async updateArticleBySlug(slug, { tagList, ...params }, currentUser) {
@@ -287,8 +290,7 @@ export const articleRepo: ArticleRepo = {
       await createArticleTags(queryRunner, article, false, tagList);
     });
 
-    const query = buildQuery({ id: article.id }, currentUser);
-    return await query.getRawOne();
+    return await getArticle({ id: article.id }, currentUser);
   },
 
   async deleteArticleBySlug(slug, currentUser) {
@@ -328,12 +330,14 @@ export const articleRepo: ArticleRepo = {
         await queryRunner.manager.save(article);
       });
     } catch (error) {
-      if (error.constraint !== 'userArticleFavoriteUserIdArticleIdIndex')
+      if (
+        (error as { constraint: string }).constraint !==
+        'userArticleFavoriteUserIdArticleIdIndex'
+      )
         throw error;
     }
 
-    const query = buildQuery({ id }, currentUser);
-    return await query.getRawOne();
+    return await getArticle({ id }, currentUser);
   },
 
   async unmarkAsFavoriteBySlug(slug, currentUser) {
@@ -361,7 +365,6 @@ export const articleRepo: ArticleRepo = {
       await queryRunner.manager.save(article);
     });
 
-    const query = buildQuery({ id }, currentUser);
-    return await query.getRawOne();
+    return await getArticle({ id }, currentUser);
   },
 };

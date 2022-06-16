@@ -18,6 +18,16 @@
     "test:objection": "ORM=objection DEBUG=knex:query NODE_PATH=src jest",
     "test:mikroorm": "ORM=mikroorm NODE_PATH=src jest --maxWorkers=1"
   },
+  "jest": {
+    "coverageDirectory": "coverage",
+    "coverageProvider": "v8",
+    "setupFilesAfterEnv": [
+      "./jest-setup.ts"
+    ],
+    "transform": {
+      "^.+\\.ts$": "ts-jest"
+    }
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",

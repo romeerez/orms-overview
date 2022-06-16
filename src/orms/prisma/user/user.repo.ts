@@ -9,7 +9,7 @@ export const userRepo: UserRepo = {
         data: params,
       });
     } catch (error) {
-      const target = error.meta?.target;
+      const target = (error as { meta: { target: string } }).meta?.target;
       const email = target?.includes('email');
       const username = target?.includes('username');
       if (email || username) {

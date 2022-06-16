@@ -7,8 +7,9 @@ export const userRepo: UserRepo = {
     try {
       return await User.query().insertAndFetch(params);
     } catch (error) {
-      const username = error.constraint === 'userUsernameIndex';
-      const email = error.constraint === 'userEmailIndex';
+      const err = error as { constraint: string };
+      const username = err.constraint === 'userUsernameIndex';
+      const email = err.constraint === 'userEmailIndex';
       if (username || email) {
         throw new UniqueViolationError(
           `User with such ${email ? 'email' : 'username'} already exists`,

@@ -6,9 +6,10 @@ import config from 'config';
 import errorHandler from 'errorHandler';
 import { orms } from 'orms/orms';
 import { OrmName } from 'orms/types';
+import { getDb } from './orms/mikroorm/db';
+import { EntityManager } from '@mikro-orm/postgresql';
 // for typeorm
 import 'reflect-metadata';
-import { dbPromise } from './orms/mikroorm/db';
 
 const server = fastify();
 
@@ -28,7 +29,7 @@ server.addHook('onRequest', async (req, res) => {
 
   req.orm = orm;
   if (ormName === 'mikroorm') {
-    req.meta = { em: (await dbPromise).em.fork() };
+    req.meta = { em: (await getDb()).em.fork() as EntityManager };
   }
 });
 

@@ -50,7 +50,7 @@ export const request = async (
     try {
       schema.validateSync(data);
     } catch (error) {
-      error.message += `\n\nActual response: ${JSON.stringify(
+      (error as Error).message += `\n\nActual response: ${JSON.stringify(
         data,
         undefined,
         2,

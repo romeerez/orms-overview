@@ -43,18 +43,25 @@ class CamelCaseNamingStrategy extends AbstractNamingStrategy {
   }
 }
 
-export const dbPromise = MikroORM.init({
-  namingStrategy: CamelCaseNamingStrategy,
-  entities: [
-    Article,
-    ArticleTag,
-    UserArticleFavorite,
-    Comment,
-    Tag,
-    User,
-    UserFollow,
-  ],
-  type: 'postgresql',
-  clientUrl: config.dbUrl,
-  metadataProvider: TsMorphMetadataProvider,
-});
+let promise: Promise<MikroORM> | undefined;
+export const getDb = () => {
+  if (promise) return promise;
+
+  promise = MikroORM.init({
+    namingStrategy: CamelCaseNamingStrategy,
+    entities: [
+      Article,
+      ArticleTag,
+      UserArticleFavorite,
+      Comment,
+      Tag,
+      User,
+      UserFollow,
+    ],
+    type: 'postgresql',
+    clientUrl: config.dbUrl,
+    metadataProvider: TsMorphMetadataProvider,
+  });
+
+  return promise;
+};

@@ -11,10 +11,12 @@ export const userRepo: UserRepo = {
       await repo.save(user);
       return user;
     } catch (error) {
-      if (error.message.includes('duplicate key')) {
+      if ((error as { message: string }).message.includes('duplicate key')) {
         throw new UniqueViolationError(
           `User with such ${
-            error.detail.includes('email') ? 'email' : 'username'
+            (error as { detail: string }).detail.includes('email')
+              ? 'email'
+              : 'username'
           } already exists`,
         );
       }

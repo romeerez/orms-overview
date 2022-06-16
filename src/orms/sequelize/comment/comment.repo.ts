@@ -52,6 +52,7 @@ export const commentRepo: CommentRepo = {
     const now = new Date();
     const comment = await article.createComment({
       ...params,
+      articleId: article.id,
       authorId: currentUser.id,
       createdAt: now,
       updatedAt: now,

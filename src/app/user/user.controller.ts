@@ -20,10 +20,13 @@ const createParams = object({
 
 export const register: RequestHandler = async (request) => {
   const { user: params } = validate(createParams, request.body);
-  const user = await request.orm.userRepo.create({
-    ...params,
-    password: await encryptPassword(params.password),
-  });
+  const user = await request.orm.userRepo.create(
+    {
+      ...params,
+      password: await encryptPassword(params.password),
+    },
+    request.meta,
+  );
   const token = createToken({ id: user.id, email: user.email });
   return response.user(user, token);
 };
@@ -38,7 +41,10 @@ const loginParams = object({
 export const login: RequestHandler = async (request) => {
   const { user: params } = validate(loginParams, request.body);
 
-  const user = await request.orm.userRepo.findByEmail(params.email);
+  const user = await request.orm.userRepo.findByEmail(
+    params.email,
+    request.meta,
+  );
   if (!user || !(await comparePassword(params.password, user.password))) {
     throw new ValidationError('Email or password is invalid');
   }
@@ -65,7 +71,11 @@ export const update = authUser(async (request) => {
   const { user: params } = validate(updateParams, request.body);
   if (params.password) params.password = await encryptPassword(params.password);
 
-  const user = await request.orm.userRepo.updateUser(request.user, params);
+  const user = await request.orm.userRepo.updateUser(
+    request.user,
+    params,
+    request.meta,
+  );
 
   return response.user(user, request.userToken);
 });

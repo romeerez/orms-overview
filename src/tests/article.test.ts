@@ -15,24 +15,10 @@ import { articlesSchema, articleSchema } from 'tests/utils/schemas';
 import { currentUser, userFactory } from 'tests/factories/user.factory';
 import { randomString } from 'tests/utils/randomString';
 import { ArticleForResponse } from 'app/article/article.types';
-import { clearDatabaseForPrisma } from 'tests/utils/for-prisma';
-import { db } from 'tests/utils/db';
+import { clearDatabaseForUnpatchableOrms } from 'tests/utils/for-unpatchable-orms';
 
 describe('articles endpoints', () => {
-  beforeEach(async () => {
-    if (process.env.ORM !== 'prisma') return;
-
-    await db.query(`DELETE FROM "articleTag"`);
-    await db.query(`DELETE FROM "userArticleFavorite"`);
-    await db.query(`DELETE FROM "article"`);
-    await db.query(`DELETE FROM "tag"`);
-    await db.query('DELETE FROM "userFollow"');
-    await db.query(
-      `DELETE FROM "user" WHERE "email" != '${currentUser.email}'`,
-    );
-  });
-
-  clearDatabaseForPrisma();
+  clearDatabaseForUnpatchableOrms();
 
   describe('GET /articles', () => {
     it('should list all articles ordered by createdAt, default limit is 20', async () => {

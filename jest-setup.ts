@@ -5,8 +5,12 @@ import {
   rollbackTransaction,
   closePg,
 } from 'tests/utils/patch-pg';
+import { isUnpatchableOrm } from './src/tests/utils/constants';
+import { db } from 'tests/utils/db';
 
-patchPgClient();
+if (!isUnpatchableOrm) {
+  patchPgClient();
+}
 
 import { orms } from 'orms/orms';
 import { OrmName } from 'orms/types';
@@ -19,7 +23,7 @@ if (orm.initialize) {
   });
 }
 
-if (ormName !== 'prisma') {
+if (!isUnpatchableOrm) {
   beforeEach(async () => {
     await startTransaction();
   });
@@ -32,4 +36,5 @@ if (ormName !== 'prisma') {
 afterAll(async () => {
   if (orm.close) orm.close();
   closePg();
+  await db.end();
 });

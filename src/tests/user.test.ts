@@ -3,10 +3,10 @@ import { userSchema } from 'tests/utils/schemas';
 import { randomString } from 'tests/utils/randomString';
 import { currentUser } from 'tests/factories/user.factory';
 import { db } from 'tests/utils/db';
-import { clearDatabaseForPrisma } from 'tests/utils/for-prisma';
+import { clearDatabaseForUnpatchableOrms } from 'tests/utils/for-unpatchable-orms';
 
 describe('user endpoints', () => {
-  clearDatabaseForPrisma();
+  clearDatabaseForUnpatchableOrms();
 
   describe('POST /users', () => {
     describe('registration', () => {

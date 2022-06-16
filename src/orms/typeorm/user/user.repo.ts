@@ -7,8 +7,9 @@ export const userRepo: UserRepo = {
   async create(params) {
     const repo = getRepository(User);
     try {
-      const user = repo.create(params);
-      return await repo.save(user);
+      const user = Object.assign(new User(), params);
+      await repo.save(user);
+      return user;
     } catch (error) {
       if (error.message.includes('duplicate key')) {
         throw new UniqueViolationError(
@@ -31,8 +32,12 @@ export const userRepo: UserRepo = {
     return await repo.findOne(id);
   },
 
-  async updateUser(user, params) {
+  async updateUser({ id }, params) {
     const repo = getRepository(User);
-    return await repo.save({ ...user, ...params });
+    const user = await repo.findOne(id);
+    if (!user) throw new Error('not found');
+    Object.assign(user, params);
+    await repo.save(user);
+    return user;
   },
 };

@@ -1,3 +1,4 @@
+import './extend-fastify';
 import fastify from 'fastify';
 import 'dotenv/config';
 import routes from 'routes';
@@ -7,6 +8,7 @@ import { orms } from 'orms/orms';
 import { OrmName } from 'orms/types';
 // for typeorm
 import 'reflect-metadata';
+import { dbPromise } from './orms/mikroorm/db';
 
 const server = fastify();
 
@@ -20,11 +22,14 @@ server.addHook('onRequest', async (req, res) => {
     req.headers['content-type'] = 'empty';
   }
 
-  const ormName = req.headers['x-orm'] || 'sequelize';
+  const ormName = req.headers['x-orm'] || 'mikroorm';
   const orm = orms[ormName as OrmName];
   if (!orm) throw new Error(`Unsupported orm name provided: ${ormName}`);
 
   req.orm = orm;
+  if (ormName === 'mikroorm') {
+    req.meta = { em: (await dbPromise).em.fork() };
+  }
 });
 
 server.addContentTypeParser('empty', ((

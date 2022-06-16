@@ -17,6 +17,7 @@ export const articleComments: RequestHandler = async (request) => {
   const comments = await request.orm.commentRepo.articleComments(
     slug,
     currentUser,
+    request.meta,
   );
   return response.comments(comments);
 };
@@ -34,6 +35,7 @@ export const createArticleComment = authUser(async (request) => {
     slug,
     params,
     request.user,
+    request.meta,
   );
   return response.comment(comment);
 });
@@ -45,6 +47,10 @@ const deleteParams = object({
 
 export const deleteArticleComment = authUser(async (request) => {
   const { id } = validate(deleteParams, request.params);
-  await request.orm.commentRepo.deleteArticleComment(id, request.user);
+  await request.orm.commentRepo.deleteArticleComment(
+    id,
+    request.user,
+    request.meta,
+  );
   return null;
 });

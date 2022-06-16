@@ -5,6 +5,7 @@ import * as comment from 'app/comment/comment.controller';
 import * as tag from 'app/tag/tag.controller';
 import { FastifyInstance } from 'fastify';
 
+// async is required by fastify
 export default async function routes(fastify: FastifyInstance) {
   fastify.post('/users', user.register);
   fastify.post('/users/login', user.login);

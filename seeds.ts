@@ -13,6 +13,7 @@ const main = async () => {
   });
 
   db.end();
+  process.exit();
 };
 
 main();

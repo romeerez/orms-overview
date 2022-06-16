@@ -25,6 +25,7 @@ export const listArticles: RequestHandler = async (request) => {
   const { articles, count } = await request.orm.articleRepo.listArticles(
     params,
     currentUser,
+    request.meta,
   );
   return response.articles(articles, count);
 };
@@ -42,6 +43,7 @@ export const articlesFeed = authUser(async (request) => {
       fromFollowedAuthors: true,
     },
     request.user,
+    request.meta,
   );
   return response.articles(articles, count);
 });
@@ -52,6 +54,7 @@ export const getArticleBySlug: RequestHandler = async (request) => {
   const article = await request.orm.articleRepo.getArticleBySlug(
     slug,
     currentUser,
+    request.meta,
   );
   return response.article(article);
 };
@@ -73,6 +76,7 @@ export const createArticle = authUser(async (request) => {
       slug: slugify(params.title, { lower: true }),
     },
     request.user,
+    request.meta,
   );
   return response.article(article);
 });
@@ -94,13 +98,18 @@ export const updateArticle = authUser(async (request) => {
     slug,
     params,
     request.user,
+    request.meta,
   );
   return response.article(article);
 });
 
 export const deleteArticle = authUser(async (request) => {
   const { slug } = validate(slugParam, request.params);
-  await request.orm.articleRepo.deleteArticleBySlug(slug, request.user);
+  await request.orm.articleRepo.deleteArticleBySlug(
+    slug,
+    request.user,
+    request.meta,
+  );
   return null;
 });
 
@@ -109,6 +118,7 @@ export const markAsFavorite = authUser(async (request) => {
   const article = await request.orm.articleRepo.markAsFavoriteBySlug(
     slug,
     request.user,
+    request.meta,
   );
   return response.article(article);
 });
@@ -118,6 +128,7 @@ export const unmarkAsFavorite = authUser(async (request) => {
   const article = await request.orm.articleRepo.unmarkAsFavoriteBySlug(
     slug,
     request.user,
+    request.meta,
   );
   return response.article(article);
 });

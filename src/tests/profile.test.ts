@@ -10,18 +10,10 @@ import {
 } from 'tests/utils/request';
 import { profileSchema } from 'tests/utils/schemas';
 import { currentUser, userFactory } from 'tests/factories/user.factory';
-import { db } from 'tests/utils/db';
-import { clearDatabaseForPrisma } from 'tests/utils/for-prisma';
+import { clearDatabaseForUnpatchableOrms } from 'tests/utils/for-unpatchable-orms';
 
 describe('profile endpoints', () => {
-  beforeAll(async () => {
-    if (process.env.ORM !== 'prisma') return;
-
-    await db.query('DELETE FROM "userFollow"');
-    await db.query('DELETE FROM "user"');
-  });
-
-  clearDatabaseForPrisma();
+  clearDatabaseForUnpatchableOrms();
 
   describe('GET /profiles/:username', () => {
     test('not found', async () => {

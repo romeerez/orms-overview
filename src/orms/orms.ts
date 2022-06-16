@@ -4,6 +4,7 @@ import { typeorm } from 'orms/typeorm/typeorm';
 import { knex } from 'orms/knex/knex';
 import { prisma } from 'orms/prisma/prisma';
 import { objection } from 'orms/objection/objection';
+import { mikroorm } from 'orms/mikroorm/mikroorm';
 
 export const orms: Record<OrmName, OrmInterface> = {
   sequelize,
@@ -11,4 +12,5 @@ export const orms: Record<OrmName, OrmInterface> = {
   knex,
   prisma,
   objection,
+  mikroorm,
 };

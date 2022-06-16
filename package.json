@@ -15,12 +15,16 @@
     "test:typeorm": "ORM=typeorm NODE_PATH=src jest",
     "test:knex": "ORM=knex DEBUG=knex:query NODE_PATH=src jest",
     "test:prisma": "ORM=prisma NODE_PATH=src jest --maxWorkers=1",
-    "test:objection": "ORM=objection DEBUG=knex:query NODE_PATH=src jest"
+    "test:objection": "ORM=objection DEBUG=knex:query NODE_PATH=src jest",
+    "test:mikroorm": "ORM=mikroorm NODE_PATH=src jest --maxWorkers=1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@mikro-orm/core": "^5.2.0",
+    "@mikro-orm/postgresql": "^5.2.0",
+    "@mikro-orm/reflection": "^5.2.0",
     "@prisma/client": "^2.20.1",
     "@typescript-eslint/eslint-plugin": "^4.18.0",
     "@typescript-eslint/parser": "^4.18.0",

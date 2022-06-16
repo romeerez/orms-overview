@@ -16,6 +16,7 @@ export const getProfileByUsername: RequestHandler = async (request) => {
   const profile = await request.orm.profileRepo.getProfileByUsername(
     username,
     currentUser,
+    request.meta,
   );
   return response.profile(profile);
 };
@@ -25,6 +26,7 @@ export const followByUsername = authUser(async (request) => {
   const profile = await request.orm.profileRepo.followByUsername(
     username,
     request.user,
+    request.meta,
   );
   return response.profile(profile);
 });
@@ -34,6 +36,7 @@ export const unfollowByUsername = authUser(async (request) => {
   const profile = await request.orm.profileRepo.unfollowByUsername(
     username,
     request.user,
+    request.meta,
   );
   return response.profile(profile);
 });

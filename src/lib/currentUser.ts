@@ -16,7 +16,7 @@ export const getCurrentUserAndToken = async (
     }
 
     const { id } = <{ id: number }>verifyToken(token);
-    const user = await request.orm.userRepo.findById(id);
+    const user = await request.orm.userRepo.findById(id, request.meta);
     if (!user) return;
 
     return { user, token };

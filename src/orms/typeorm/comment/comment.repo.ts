@@ -56,15 +56,16 @@ export const commentRepo: CommentRepo = {
     if (!article) throw new NotFoundError();
 
     const repo = getRepository(Comment);
-    const comment = repo.create({
+    const newComment = repo.create({
       ...params,
       authorId: currentUser.id,
       articleId: article.id,
     });
 
-    const { id } = await repo.save(comment);
-    const query = buildQuery({ id }, currentUser);
-    return await query.getRawOne();
+    const { id } = await repo.save(newComment);
+    const comment = await buildQuery({ id }, currentUser).getRawOne();
+    if (!comment) throw new NotFoundError();
+    return comment;
   },
 
   async deleteArticleComment(id, currentUser) {

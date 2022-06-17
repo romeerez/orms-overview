@@ -1,9 +1,10 @@
 import { ProfileRepo } from 'orms/types';
 import { User as UserType } from 'app/user/user.types';
 import { UserFollow } from 'orms/typeorm/user/userFollow.model';
-import { getRepository, SelectQueryBuilder } from 'typeorm';
+import { SelectQueryBuilder } from 'typeorm';
 import { User } from 'orms/typeorm/user/user.model';
 import { NotFoundError } from 'errors';
+import { dataSource } from '../dataSource';
 
 export const buildProfileQuery = (
   params: {
@@ -12,7 +13,7 @@ export const buildProfileQuery = (
   },
   currentUser?: UserType,
 ) => {
-  const userRepo = getRepository(User);
+  const userRepo = dataSource.getRepository(User);
 
   let query;
   if (params.query) {
@@ -59,11 +60,11 @@ export const profileRepo: ProfileRepo = {
   },
 
   async followByUsername(username, currentUser) {
-    const userRepo = getRepository(User);
+    const userRepo = dataSource.getRepository(User);
     const user = await userRepo.findOne({ where: { username } });
     if (!user) throw new NotFoundError();
 
-    const followRepo = getRepository(UserFollow);
+    const followRepo = dataSource.getRepository(UserFollow);
     const follow = followRepo.create({
       followerId: currentUser.id,
       followingId: user.id,
@@ -77,11 +78,11 @@ export const profileRepo: ProfileRepo = {
   },
 
   async unfollowByUsername(username, currentUser) {
-    const userRepo = getRepository(User);
+    const userRepo = dataSource.getRepository(User);
     const user = await userRepo.findOne({ where: { username } });
     if (!user) throw new NotFoundError();
 
-    const followRepo = getRepository(UserFollow);
+    const followRepo = dataSource.getRepository(UserFollow);
     await followRepo.delete({
       followerId: currentUser.id,
       followingId: user.id,

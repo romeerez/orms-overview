@@ -1,16 +1,16 @@
 import { CommentRepo } from 'orms/types';
 import { User as UserType } from 'app/user/user.types';
-import { getRepository } from 'typeorm';
 import { Comment } from 'orms/typeorm/comment/comment.model';
 import { Article } from 'orms/typeorm/article/article.model';
 import { buildProfileQuery } from 'orms/typeorm/profile/profile.repo';
 import { ForbiddenError, NotFoundError } from 'errors';
+import { dataSource } from '../dataSource';
 
 const buildQuery = (
   params: { id?: number; articleSlug?: string },
   currentUser?: UserType,
 ) => {
-  const repo = getRepository(Comment);
+  const repo = dataSource.getRepository(Comment);
 
   let query = repo
     .createQueryBuilder('comment')
@@ -51,11 +51,11 @@ export const commentRepo: CommentRepo = {
   },
 
   async createArticleComment(slug, params, currentUser) {
-    const articleRepo = getRepository(Article);
+    const articleRepo = dataSource.getRepository(Article);
     const article = await articleRepo.findOne({ where: { slug } });
     if (!article) throw new NotFoundError();
 
-    const repo = getRepository(Comment);
+    const repo = dataSource.getRepository(Comment);
     const newComment = repo.create({
       ...params,
       authorId: currentUser.id,
@@ -69,8 +69,8 @@ export const commentRepo: CommentRepo = {
   },
 
   async deleteArticleComment(id, currentUser) {
-    const repo = getRepository(Comment);
-    const comment = await repo.findOne(id);
+    const repo = dataSource.getRepository(Comment);
+    const comment = await repo.findOneBy({ id });
     if (!comment) throw new NotFoundError();
     if (comment.authorId !== currentUser.id) throw new ForbiddenError();
 

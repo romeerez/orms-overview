@@ -7,12 +7,11 @@
     "start": "NODE_PATH=src NODE_ENV=development ts-node-dev src/index.ts",
     "start:prod": "NODE_PATH=src NODE_ENV=production ts-node src/index.ts",
     "db": "rake-db",
-    "db:seeds": "NODE_PATH=src ts-node seeds.ts",
     "lint": "eslint \"src/**/*.ts\"",
     "lint:fix": "eslint \"src/**/*.ts\" --fix",
     "test": "NODE_PATH=src jest",
     "test:sequelize": "ORM=sequelize NODE_PATH=src jest",
-    "test:typeorm": "ORM=typeorm NODE_PATH=src jest",
+    "test:typeorm": "ORM=typeorm NODE_PATH=src jest --maxWorkers=1",
     "test:knex": "ORM=knex DEBUG=knex:query NODE_PATH=src jest",
     "test:prisma": "ORM=prisma NODE_PATH=src jest --maxWorkers=1",
     "test:objection": "ORM=objection DEBUG=knex:query NODE_PATH=src jest",
@@ -24,6 +23,7 @@
     "setupFilesAfterEnv": [
       "./jest-setup.ts"
     ],
+    "globalSetup": "./jest-global-setup.ts",
     "transform": {
       "^.+\\.ts$": "ts-jest"
     }
@@ -54,7 +54,7 @@
     "reflect-metadata": "^0.1.13",
     "sequelize": "^6.5.0",
     "slugify": "^1.4.7",
-    "typeorm": "^0.2.31",
+    "typeorm": "^0.3.6",
     "yup": "^0.32.9"
   },
   "devDependencies": {

@@ -1,10 +1,13 @@
 import 'dotenv/config';
-import { db } from 'tests/utils/db';
 import { create } from 'tests/utils/create';
 import { currentUser } from 'tests/factories/user.factory';
 import { encryptPassword } from 'lib/password';
+import { Client } from 'pg';
 
-const main = async () => {
+export default async () => {
+  const db = new Client({
+    connectionString: process.env.DATABASE_URL_TEST,
+  });
   await db.connect();
   await db.query('TRUNCATE TABLE "user" CASCADE');
   await create('user', {
@@ -12,8 +15,5 @@ const main = async () => {
     password: await encryptPassword(currentUser.password),
   });
 
-  db.end();
-  process.exit();
+  await db.end();
 };
-
-main();

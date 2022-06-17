@@ -1,5 +1,5 @@
 import { ArticleRepo } from 'orms/types';
-import { getConnection, getRepository, In, QueryRunner } from 'typeorm';
+import { EntityManager, In, QueryRunner } from 'typeorm';
 import { Article } from 'orms/typeorm/article/article.model';
 import { Tag } from 'orms/typeorm/tag/tag.model';
 import { User as UserType } from 'app/user/user.types';
@@ -9,7 +9,7 @@ import { UserFollow } from 'orms/typeorm/user/userFollow.model';
 import { ArticleTag } from 'orms/typeorm/article/articleTag.model';
 import { ForbiddenError, NotFoundError } from 'errors';
 import { buildProfileQuery } from 'orms/typeorm/profile/profile.repo';
-import { ArticleForResponse } from '../../../app/article/article.types';
+import { dataSource } from '../dataSource';
 
 const buildQuery = (
   params: {
@@ -24,7 +24,7 @@ const buildQuery = (
   },
   currentUser?: UserType,
 ) => {
-  const repo = getRepository(Article);
+  const repo = dataSource.getRepository(Article);
 
   let query = repo
     .createQueryBuilder('article')
@@ -166,8 +166,8 @@ const buildQuery = (
   return query;
 };
 
-const deleteUnusedTags = async (queryRunner: QueryRunner) => {
-  await queryRunner.manager
+const deleteUnusedTags = async (entityManager: EntityManager) => {
+  await entityManager
     .createQueryBuilder()
     .delete()
     .from(Tag)
@@ -178,13 +178,13 @@ const deleteUnusedTags = async (queryRunner: QueryRunner) => {
 };
 
 const getArticle = async (...params: Parameters<typeof buildQuery>) => {
-  const article = await buildQuery(...params);
+  const article = await buildQuery(...params).getRawOne();
   if (!article) throw new NotFoundError();
-  return article as unknown as ArticleForResponse;
+  return article;
 };
 
 const createArticleTags = async (
-  queryRunner: QueryRunner,
+  entityManager: EntityManager,
   article: Article,
   isNew: boolean,
   tagList?: string[],
@@ -192,11 +192,11 @@ const createArticleTags = async (
   if (!tagList?.length) return [];
 
   if (!isNew) {
-    await queryRunner.manager.delete(ArticleTag, { articleId: article.id });
-    await deleteUnusedTags(queryRunner);
+    await entityManager.delete(ArticleTag, { articleId: article.id });
+    await deleteUnusedTags(entityManager);
   }
 
-  const tags = await queryRunner.manager.find(Tag, {
+  const tags = await entityManager.find(Tag, {
     where: { tag: In(tagList) },
   });
 
@@ -204,44 +204,21 @@ const createArticleTags = async (
     (name) => !tags.some(({ tag }) => tag === name),
   );
 
-  const tagRepo = getRepository(Tag);
-  const createdTags = await Promise.all(
-    notExistingTags.map((name) => {
-      const tag = tagRepo.create({ tag: name });
-      return queryRunner.manager.save(tag);
-    }),
+  const tagRepo = dataSource.getRepository(Tag);
+  const createdTags = await entityManager.save(
+    notExistingTags.map((tag) => tagRepo.create({ tag })),
   );
 
   const tagIds = [...tags, ...createdTags].map(({ id }) => id);
-  const articleTagRepo = getRepository(ArticleTag);
-  article.articleTags = await Promise.all(
-    tagIds.map((id) => {
-      const articleTag = articleTagRepo.create({
+  const articleTagRepo = dataSource.getRepository(ArticleTag);
+  article.articleTags = await entityManager.save(
+    tagIds.map((id) =>
+      articleTagRepo.create({
         articleId: article.id,
         tagId: id,
-      });
-      return articleTagRepo.save(articleTag);
-    }),
+      }),
+    ),
   );
-};
-
-const runInTransaction = async (
-  callback: (queryRunner: QueryRunner) => Promise<void>,
-) => {
-  const connection = getConnection();
-  const queryRunner = connection.createQueryRunner();
-  await queryRunner.connect();
-  await queryRunner.startTransaction();
-
-  try {
-    await callback(queryRunner);
-    await queryRunner.commitTransaction();
-  } catch (err) {
-    await queryRunner.rollbackTransaction();
-    throw err;
-  } finally {
-    await queryRunner.release();
-  }
 };
 
 export const articleRepo: ArticleRepo = {
@@ -257,26 +234,26 @@ export const articleRepo: ArticleRepo = {
   },
 
   async getArticleBySlug(slug, currentUser) {
-    return getArticle({ slug }, currentUser);
+    return await getArticle({ slug }, currentUser);
   },
 
   async createArticle(params, currentUser) {
-    const repo = getRepository(Article);
+    const repo = dataSource.getRepository(Article);
 
     let id = 0;
-    await runInTransaction(async (queryRunner) => {
+    await dataSource.transaction(async (t) => {
       const article = repo.create({ ...params, authorId: currentUser.id });
 
-      ({ id } = <{ id: number }>await queryRunner.manager.save(article));
+      ({ id } = <{ id: number }>await t.save(article));
 
-      await createArticleTags(queryRunner, article, true, params.tagList);
+      await createArticleTags(t, article, true, params.tagList);
     });
 
     return await getArticle({ id }, currentUser);
   },
 
   async updateArticleBySlug(slug, { tagList, ...params }, currentUser) {
-    const repo = getRepository(Article);
+    const repo = dataSource.getRepository(Article);
     const article = await repo.findOne({
       where: { slug },
     });
@@ -284,17 +261,17 @@ export const articleRepo: ArticleRepo = {
     if (!article) throw new NotFoundError();
     if (article.authorId !== currentUser.id) throw new ForbiddenError();
 
-    await runInTransaction(async (queryRunner) => {
+    await dataSource.transaction(async (t) => {
       Object.assign(article, params);
-      await queryRunner.manager.save(article);
-      await createArticleTags(queryRunner, article, false, tagList);
+      await t.save(article);
+      await createArticleTags(t, article, false, tagList);
     });
 
     return await getArticle({ id: article.id }, currentUser);
   },
 
   async deleteArticleBySlug(slug, currentUser) {
-    const repo = getRepository(Article);
+    const repo = dataSource.getRepository(Article);
     const article = await repo.findOne({
       where: { slug },
     });
@@ -302,10 +279,10 @@ export const articleRepo: ArticleRepo = {
     if (!article) throw new NotFoundError();
     if (article.authorId !== currentUser.id) throw new ForbiddenError();
 
-    await runInTransaction(async (queryRunner) => {
-      await queryRunner.manager.delete(ArticleTag, { articleId: article.id });
-      await queryRunner.manager.delete(Article, article.id);
-      await deleteUnusedTags(queryRunner);
+    await dataSource.transaction(async (t) => {
+      await t.delete(ArticleTag, { articleId: article.id });
+      await t.delete(Article, article.id);
+      await deleteUnusedTags(t);
     });
   },
 
@@ -313,21 +290,21 @@ export const articleRepo: ArticleRepo = {
     let id = 0;
 
     try {
-      await runInTransaction(async (queryRunner) => {
-        const repo = getRepository(Article);
+      await dataSource.transaction(async (t) => {
+        const repo = dataSource.getRepository(Article);
         const article = await repo.findOne({ where: { slug } });
         if (!article) throw new NotFoundError();
         id = article.id;
 
-        const favoriteRepo = getRepository(UserArticleFavorite);
+        const favoriteRepo = dataSource.getRepository(UserArticleFavorite);
         const favorite = favoriteRepo.create({
           articleId: id,
           userId: currentUser.id,
         });
-        await queryRunner.manager.save(favorite);
+        await t.save(favorite);
 
         article.favoritesCount += 1;
-        await queryRunner.manager.save(article);
+        await t.save(article);
       });
     } catch (error) {
       if (
@@ -343,26 +320,26 @@ export const articleRepo: ArticleRepo = {
   async unmarkAsFavoriteBySlug(slug, currentUser) {
     let id = 0;
 
-    await runInTransaction(async (queryRunner) => {
-      const repo = getRepository(Article);
+    await dataSource.transaction(async (t) => {
+      const repo = dataSource.getRepository(Article);
       const article = await repo.findOne({ where: { slug } });
       if (!article) throw new NotFoundError();
       id = article.id;
 
-      const favoriteRepo = getRepository(UserArticleFavorite);
-      const favorite = await favoriteRepo.findOne({
+      const favoriteRepo = dataSource.getRepository(UserArticleFavorite);
+      const favorite = await favoriteRepo.findOneBy({
         articleId: id,
         userId: currentUser.id,
       });
       if (!favorite) return;
 
-      await queryRunner.manager.delete(UserArticleFavorite, {
+      await t.delete(UserArticleFavorite, {
         articleId: id,
         userId: currentUser.id,
       });
 
       article.favoritesCount -= 1;
-      await queryRunner.manager.save(article);
+      await t.save(article);
     });
 
     return await getArticle({ id }, currentUser);

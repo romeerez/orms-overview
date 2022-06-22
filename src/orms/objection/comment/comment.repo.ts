@@ -2,7 +2,7 @@ import { CommentRepo } from 'orms/types';
 import { User } from 'app/user/user.types';
 import { Comment } from 'orms/objection/comment/comment.model';
 import { Article } from 'orms/objection/article/article.model';
-import { QueryBuilder } from 'orms/objection/model';
+import { QueryBuilder } from 'objection';
 import { CommentForResponse } from 'app/comment/comment.types';
 import { ForbiddenError, NotFoundError } from 'errors';
 
@@ -19,12 +19,12 @@ const buildQuery = (
 
   if (params.articleSlug) query.joinRelated(Article);
 
-  return (query as unknown) as QueryBuilder<Comment & CommentForResponse>;
+  return query as unknown as QueryBuilder<Comment & CommentForResponse>;
 };
 
 export const commentRepo: CommentRepo = {
-  articleComments(articleSlug, currentUser) {
-    return buildQuery({ articleSlug }, currentUser);
+  async articleComments(articleSlug, currentUser) {
+    return await buildQuery({ articleSlug }, currentUser);
   },
 
   async createArticleComment(slug, params, currentUser) {
@@ -37,7 +37,9 @@ export const commentRepo: CommentRepo = {
       authorId: currentUser.id,
     });
 
-    return await buildQuery({ id }, currentUser).first();
+    const comment = await buildQuery({ id }, currentUser).first();
+    if (!comment) throw new NotFoundError();
+    return comment;
   },
 
   async deleteArticleComment(id, currentUser) {

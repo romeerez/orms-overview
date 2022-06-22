@@ -1,7 +1,7 @@
-import { BaseModel } from 'orms/objection/model';
 import { ArticleTag } from 'orms/objection/article/articleTag.model';
+import { Model } from 'objection';
 
-export class Tag extends BaseModel {
+export class Tag extends Model {
   static tableName = 'tag';
 
   id!: number;
@@ -9,7 +9,7 @@ export class Tag extends BaseModel {
 
   static relationMappings = {
     articleTag: {
-      relation: BaseModel.HasManyRelation,
+      relation: Model.HasManyRelation,
       modelClass: ArticleTag,
       join: {
         from: 'tag.id',

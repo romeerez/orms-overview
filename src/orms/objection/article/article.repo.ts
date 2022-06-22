@@ -50,8 +50,8 @@ const buildQuery = (
   if (params.offset) query.offset(params.offset);
 
   return [
-    (query as unknown) as Promise<ArticleForResponse[]>,
-    (countQuery as unknown) as Promise<{ count: string }[]>,
+    query as unknown as Promise<ArticleForResponse[]>,
+    countQuery as unknown as Promise<{ count: string }[]>,
   ] as const;
 };
 
@@ -192,11 +192,11 @@ export const articleRepo: ArticleRepo = {
   },
 
   async markAsFavoriteBySlug(slug, currentUser) {
-    const article = ((await Article.query()
+    const article = (await Article.query()
       .select('id')
       .modify('selectFavorited', currentUser)
       .where({ slug })
-      .first()) as unknown) as { id: number; favorited: boolean } | undefined;
+      .first()) as unknown as { id: number; favorited: boolean } | undefined;
 
     if (!article) throw new NotFoundError();
 
@@ -217,11 +217,11 @@ export const articleRepo: ArticleRepo = {
   },
 
   async unmarkAsFavoriteBySlug(slug, currentUser) {
-    const article = ((await Article.query()
+    const article = (await Article.query()
       .select('id')
       .modify('selectFavorited', currentUser)
       .where({ slug })
-      .first()) as unknown) as { id: number; favorited: boolean } | undefined;
+      .first()) as unknown as { id: number; favorited: boolean } | undefined;
 
     if (!article) throw new NotFoundError();
 

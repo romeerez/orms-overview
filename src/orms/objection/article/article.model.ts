@@ -1,4 +1,5 @@
-import { BaseModel, db } from 'orms/objection/model';
+import { Model } from 'objection';
+import { db } from 'orms/objection/model';
 import { User as UserType } from 'app/user/user.types';
 import { User } from 'orms/objection/user/user.model';
 import { QueryBuilder } from 'objection';
@@ -6,7 +7,7 @@ import { Tag } from 'orms/objection/tag/tag.model';
 import { UserArticleFavorite } from 'orms/objection/article/userArticleFavorite.model';
 import { selectAuthor } from 'orms/objection/profile/profile.repo';
 
-export class Article extends BaseModel {
+export class Article extends Model {
   static tableName = 'article';
 
   id!: number;
@@ -21,7 +22,7 @@ export class Article extends BaseModel {
 
   static relationMappings = {
     author: {
-      relation: BaseModel.BelongsToOneRelation,
+      relation: Model.BelongsToOneRelation,
       modelClass: User,
       join: {
         from: 'article.authorId',
@@ -29,7 +30,7 @@ export class Article extends BaseModel {
       },
     },
     userFavorites: {
-      relation: BaseModel.HasManyRelation,
+      relation: Model.HasManyRelation,
       modelClass: UserArticleFavorite,
       join: {
         from: 'article.id',
@@ -37,7 +38,7 @@ export class Article extends BaseModel {
       },
     },
     tag: {
-      relation: BaseModel.ManyToManyRelation,
+      relation: Model.ManyToManyRelation,
       modelClass: Tag,
       join: {
         from: 'article.id',

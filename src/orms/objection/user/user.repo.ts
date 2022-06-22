@@ -5,7 +5,10 @@ import { NotFoundError, UniqueViolationError } from 'errors';
 export const userRepo: UserRepo = {
   async create(params) {
     try {
-      return await User.query().insertAndFetch(params);
+      // To prevent TS error "Type is excessively deep and can't be inferred"
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      return (await User.query().insertAndFetch(params)) as UserType;
     } catch (error) {
       const err = error as { constraint: string };
       const username = err.constraint === 'userUsernameIndex';
@@ -19,8 +22,9 @@ export const userRepo: UserRepo = {
     }
   },
 
-  findByEmail(email) {
-    return User.query().where('email', email).first();
+  async findByEmail(email) {
+    const user = await User.query().where('email', email).first();
+    return user || undefined;
   },
 
   async findById(id: number) {
@@ -29,7 +33,13 @@ export const userRepo: UserRepo = {
     return user;
   },
 
-  updateUser(user, params) {
-    return User.query().updateAndFetchById(user.id, params);
+  async updateUser({ id }, params) {
+    const user = await User.query().updateAndFetchById(id, {
+      ...params,
+      bio: params.bio || undefined,
+      image: params.image || undefined,
+    });
+    if (!user) throw new NotFoundError();
+    return user;
   },
 };

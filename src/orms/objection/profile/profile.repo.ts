@@ -1,4 +1,5 @@
-import { db, QueryBuilder } from 'orms/objection/model';
+import { db } from 'orms/objection/model';
+import { QueryBuilder } from 'objection';
 import { Article } from 'orms/objection/article/article.model';
 import { User as UserType } from 'app/user/user.types';
 import { Comment } from 'orms/objection/comment/comment.model';
@@ -9,13 +10,13 @@ import { Profile } from 'app/profile/profile.types';
 import { UserFollow } from 'orms/objection/user/userFollow.model';
 
 export const selectAuthor = (
-  query: QueryBuilder<Article | Comment>,
+  query: QueryBuilder<Article> | QueryBuilder<Comment>,
   model: typeof Article | typeof Comment,
   currentUser?: UserType,
 ) => {
   const following = getFollowingSelection('author', currentUser);
 
-  query.select(
+  (query as QueryBuilder<Article>).select(
     model
       .relatedQuery('author')
       .select(
@@ -53,7 +54,7 @@ const buildQuery = (params: { username?: string }, currentUser?: UserType) => {
 
   if (params.username) query.where('username', params.username);
 
-  return (query as unknown) as QueryBuilder<User & Profile>;
+  return query as unknown as QueryBuilder<User & Profile>;
 };
 
 const getProfileByUsername = async (

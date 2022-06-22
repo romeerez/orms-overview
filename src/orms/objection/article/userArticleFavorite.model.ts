@@ -1,6 +1,6 @@
-import { BaseModel } from 'orms/objection/model';
+import { Model } from 'objection';
 
-export class UserArticleFavorite extends BaseModel {
+export class UserArticleFavorite extends Model {
   static tableName = 'userArticleFavorite';
 
   articleId!: number;

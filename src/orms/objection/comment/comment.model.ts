@@ -1,11 +1,10 @@
-import { BaseModel } from 'orms/objection/model';
-import { QueryBuilder } from 'objection';
+import { Model, QueryBuilder } from 'objection';
 import { User as UserType } from 'app/user/user.types';
 import { selectAuthor } from 'orms/objection/profile/profile.repo';
 import { Article } from 'orms/objection/article/article.model';
 import { User } from 'orms/objection/user/user.model';
 
-export class Comment extends BaseModel {
+export class Comment extends Model {
   static tableName = 'comment';
 
   id!: number;
@@ -17,7 +16,7 @@ export class Comment extends BaseModel {
 
   static relationMappings = {
     article: {
-      relation: BaseModel.BelongsToOneRelation,
+      relation: Model.BelongsToOneRelation,
       modelClass: Article,
       join: {
         from: 'comment.articleId',
@@ -25,7 +24,7 @@ export class Comment extends BaseModel {
       },
     },
     author: {
-      relation: BaseModel.BelongsToOneRelation,
+      relation: Model.BelongsToOneRelation,
       modelClass: User,
       join: {
         from: 'comment.authorId',

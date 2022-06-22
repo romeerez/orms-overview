@@ -1,5 +1,5 @@
 import { ArticleRepo } from 'orms/types';
-import { EntityManager, In, QueryRunner } from 'typeorm';
+import { EntityManager, In } from 'typeorm';
 import { Article } from 'orms/typeorm/article/article.model';
 import { Tag } from 'orms/typeorm/tag/tag.model';
 import { User as UserType } from 'app/user/user.types';

@@ -9,6 +9,10 @@ import {
   ProfileResult,
 } from 'orms/prisma/profile/profile.repo';
 
+type Client =
+  | typeof client
+  | Parameters<Parameters<typeof client.$transaction>[0]>[0];
+
 type ArticleResult = Pick<
   Article,
   | 'id'
@@ -45,46 +49,6 @@ const getQueryOptions = (
   },
   currentUser?: User,
 ) => {
-  const userWhere: any = {};
-
-  if (params.author) {
-    userWhere.username = params.author;
-  }
-
-  if (params.fromFollowedAuthors && currentUser) {
-    userWhere.userFollow_userTouserFollow_followingId = {
-      some: {
-        followerId: currentUser.id,
-      },
-    };
-  }
-
-  const where = {
-    id: params.id,
-    slug: params.slug,
-    user: params.author || params.fromFollowedAuthors ? userWhere : undefined,
-
-    articleTag: params.tag
-      ? {
-          some: {
-            tag: {
-              tag: params.tag,
-            },
-          },
-        }
-      : undefined,
-
-    userArticleFavorite: params.favorited
-      ? {
-          some: {
-            user: {
-              username: params.favorited,
-            },
-          },
-        }
-      : undefined,
-  };
-
   return {
     select: {
       id: true,
@@ -118,7 +82,41 @@ const getQueryOptions = (
           }
         : false,
     },
-    where,
+    where: {
+      id: params.id,
+      slug: params.slug,
+      user:
+        params.author || params.fromFollowedAuthors
+          ? {
+              username: params.author,
+              userFollow_userTouserFollow_followingId: currentUser && {
+                some: {
+                  followerId: currentUser.id,
+                },
+              },
+            }
+          : undefined,
+
+      articleTag: params.tag
+        ? {
+            some: {
+              tag: {
+                tag: params.tag,
+              },
+            },
+          }
+        : undefined,
+
+      userArticleFavorite: params.favorited
+        ? {
+            some: {
+              user: {
+                username: params.favorited,
+              },
+            },
+          }
+        : undefined,
+    },
     orderBy: {
       createdAt: 'desc' as const,
     },
@@ -127,7 +125,7 @@ const getQueryOptions = (
   };
 };
 
-const deleteUnusedTags = async (ids: number[]) => {
+const deleteUnusedTags = async (client: Client, ids: number[]) => {
   if (ids.length === 0) return;
 
   const usedTags = await client.tag.findMany({
@@ -153,7 +151,11 @@ const deleteUnusedTags = async (ids: number[]) => {
   });
 };
 
-const getArticleById = async (id: number, currentUser?: User) => {
+const getArticleById = async (
+  client: Client,
+  id: number,
+  currentUser?: User,
+) => {
   const { orderBy, take, skip, ...queryOptions } = getQueryOptions(
     { id },
     currentUser,
@@ -210,134 +212,150 @@ export const articleRepo: ArticleRepo = {
       },
     });
 
-    return await getArticleById(id, currentUser);
+    return await getArticleById(client, id, currentUser);
   },
 
   async updateArticleBySlug(slug, { tagList, ...data }, currentUser) {
-    const article = await client.article.findUnique({
-      where: { slug },
-      select: { authorId: true },
-    });
-    if (!article) throw new NotFoundError();
-    if (article.authorId !== currentUser.id) throw new ForbiddenError();
+    return client.$transaction(async (client) => {
+      const article = await client.article.findUnique({
+        where: { slug },
+        select: { authorId: true },
+      });
 
-    const articleTags = await client.articleTag.findMany({
-      where: { article: { slug } },
-      select: {
-        tag: true,
-      },
-    });
+      if (!article) throw new NotFoundError();
+      if (article.authorId !== currentUser.id) throw new ForbiddenError();
 
-    const tagIdsToRemove = tagList
-      ? articleTags
-          .filter(({ tag }) => !tagList.includes(tag.tag))
-          .map(({ tag }) => tag.id)
-      : [];
-
-    const { id } = await client.article.update({
-      where: { slug },
-      data: {
-        ...data,
-        articleTag: {
-          create:
-            tagList
-              ?.filter(
-                (name) => !articleTags.some(({ tag }) => tag.tag === name),
-              )
-              .map((tag) => ({
-                tag: {
-                  connectOrCreate: {
-                    where: { tag },
-                    create: { tag },
-                  },
-                },
-              })) || [],
-          deleteMany: tagIdsToRemove.map((id) => ({ tagId: id })),
+      const articleTags = await client.articleTag.findMany({
+        where: { article: { slug } },
+        select: {
+          tag: true,
         },
-      },
+      });
+
+      const tagIdsToRemove = tagList
+        ? articleTags
+            .filter(({ tag }) => !tagList.includes(tag.tag))
+            .map(({ tag }) => tag.id)
+        : [];
+
+      const { id } = await client.article.update({
+        where: { slug },
+        data: {
+          ...data,
+          articleTag: {
+            create:
+              tagList
+                ?.filter(
+                  (name) => !articleTags.some(({ tag }) => tag.tag === name),
+                )
+                .map((tag) => ({
+                  tag: {
+                    connectOrCreate: {
+                      where: { tag },
+                      create: { tag },
+                    },
+                  },
+                })) || [],
+            deleteMany: tagIdsToRemove.map((id) => ({ tagId: id })),
+          },
+        },
+      });
+
+      await deleteUnusedTags(client, tagIdsToRemove);
+
+      return await getArticleById(client, id, currentUser);
     });
-
-    await deleteUnusedTags(tagIdsToRemove);
-
-    return await getArticleById(id, currentUser);
   },
 
   async deleteArticleBySlug(slug, currentUser) {
-    const article = await client.article.findUnique({
-      where: { slug },
-      select: {
-        id: true,
-        authorId: true,
-        articleTag: { select: { tagId: true } },
-      },
-    });
-    if (!article) throw new NotFoundError();
-    if (article.authorId !== currentUser.id) throw new ForbiddenError();
+    await client.$transaction(async (client) => {
+      const article = await client.article.findUnique({
+        where: { slug },
+        select: {
+          id: true,
+          authorId: true,
+          articleTag: { select: { tagId: true } },
+        },
+      });
+      if (!article) throw new NotFoundError();
+      if (article.authorId !== currentUser.id) throw new ForbiddenError();
 
-    await client.articleTag.deleteMany({
-      where: {
-        articleId: article.id,
-      },
-    });
+      await client.articleTag.deleteMany({
+        where: {
+          articleId: article.id,
+        },
+      });
 
-    await client.article.delete({
-      where: {
-        id: article.id,
-      },
-    });
+      await client.article.delete({
+        where: {
+          id: article.id,
+        },
+      });
 
-    await deleteUnusedTags(article.articleTag.map((tag) => tag.tagId));
+      await deleteUnusedTags(
+        client,
+        article.articleTag.map((tag) => tag.tagId),
+      );
+    });
   },
 
   async markAsFavoriteBySlug(slug, currentUser) {
-    const article = await client.article.findUnique({ where: { slug } });
-    if (!article) throw new NotFoundError();
+    const id = await client.$transaction(async (client) => {
+      const article = await client.article.findUnique({ where: { slug } });
+      if (!article) throw new NotFoundError();
 
-    const favorite = await client.userArticleFavorite.findFirst({
-      where: { articleId: article.id, userId: currentUser.id },
-    });
-    if (!favorite) {
-      await client.article.update({
-        where: {
-          id: article.id,
-        },
-        data: {
-          favoritesCount: article.favoritesCount + 1,
-          userArticleFavorite: {
-            create: {
-              userId: currentUser.id,
+      const favorite = await client.userArticleFavorite.findFirst({
+        where: { articleId: article.id, userId: currentUser.id },
+      });
+      if (!favorite) {
+        await client.article.update({
+          where: {
+            id: article.id,
+          },
+          data: {
+            favoritesCount: article.favoritesCount + 1,
+            userArticleFavorite: {
+              create: {
+                userId: currentUser.id,
+              },
             },
           },
-        },
-      });
-    }
+        });
+      }
 
-    return await getArticleById(article.id, currentUser);
+      return article.id;
+    });
+
+    return await getArticleById(client, id, currentUser);
   },
 
   async unmarkAsFavoriteBySlug(slug, currentUser) {
-    const article = await client.article.findUnique({ where: { slug } });
-    if (!article) throw new NotFoundError();
+    const id = await client.$transaction(async (client) => {
+      const article = await client.article.findUnique({ where: { slug } });
+      if (!article) throw new NotFoundError();
 
-    const favorite = await client.userArticleFavorite.findFirst({
-      where: { articleId: article.id, userId: currentUser.id },
-    });
-    if (favorite) {
-      await client.article.update({
-        where: {
-          id: article.id,
-        },
-        data: {
-          favoritesCount: article.favoritesCount - 1,
-          userArticleFavorite: {
-            deleteMany: {
-              userId: currentUser.id,
+      const favorite = await client.userArticleFavorite.findFirst({
+        where: { articleId: article.id, userId: currentUser.id },
+      });
+      if (favorite) {
+        await client.article.update({
+          where: {
+            id: article.id,
+          },
+          data: {
+            favoritesCount: article.favoritesCount - 1,
+            userArticleFavorite: {
+              deleteMany: {
+                userId: currentUser.id,
+              },
             },
           },
-        },
-      });
-    }
+        });
+      }
 
-    return await getArticleById(article.id, currentUser);
+      return article.id;
+    });
+
+    return await getArticleById(client, id, currentUser);
   },
 };

@@ -16,7 +16,8 @@ type ArticleCreate = Optional<ArticleType, 'id' | 'favoritesCount'>;
 
 export class Article
   extends Model<ArticleType, ArticleCreate>
-  implements ArticleType {
+  implements ArticleType
+{
   id!: number;
   authorId!: number;
   slug!: string;

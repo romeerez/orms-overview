@@ -21,7 +21,9 @@ export const selectAuthor = (
       .relatedQuery('author')
       .select(
         db.raw(
-          `row_to_json("author".*)::jsonb || ('{"following":' || ${following} || '}')::jsonb`,
+          `json_build_object(` +
+            `'username', author.username, 'bio', author.bio, 'image', author.image, 'following', ${following}` +
+            `)`,
         ),
       )
       .as('author'),

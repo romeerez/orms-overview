@@ -20,6 +20,7 @@ export class Article {
   @Property() title!: string;
   @Property() description!: string;
   @Property() body!: string;
+  @Property() favoritesCount!: number;
   @Property() updatedAt = new Date();
   @Property() createdAt = new Date();
 
@@ -32,7 +33,6 @@ export class Article {
     Object.assign(this, params);
   }
 
-  favoritesCount!: number;
   tagList!: string[];
 
   @ManyToOne({ entity: () => User, inversedBy: (user) => user.articles })

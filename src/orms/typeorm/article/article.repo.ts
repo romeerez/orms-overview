@@ -75,7 +75,8 @@ const buildQuery = (
       ArticleTag,
       'articleTag',
       '"articleTag"."tagId" = "tag"."id" AND "articleTag"."articleId" = "article"."id"',
-    );
+    )
+    .orderBy({ tag: 'ASC' });
 
   query.addSelect(
     `(SELECT coalesce(json_agg(t."tag"), '[]') FROM (${tagListSubquery.getQuery()}) t) AS "tagList"`,

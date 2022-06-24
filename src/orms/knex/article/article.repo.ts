@@ -21,7 +21,7 @@ const buildQuery = (
   const query = db('article').select(
     'article.*',
     db('tag')
-      .select(db.raw("coalesce(json_agg(tag), '[]')"))
+      .select(db.raw("coalesce(json_agg(tag ORDER BY tag.tag ASC), '[]')"))
       .join('articleTag', 'articleTag.tagId', 'tag.id')
       .where('articleTag.articleId', db.raw('article.id'))
       .as('tagList'),
@@ -105,7 +105,7 @@ const addTagsToArticle = async (
     .returning('id');
 
   await tr('articleTag')
-    .insert(tagIds.map((tagId) => ({ articleId, tagId })))
+    .insert(tagIds.map(({ id: tagId }) => ({ articleId, tagId })))
     .onConflict(['articleId', 'tagId'])
     .ignore();
 };
@@ -145,24 +145,17 @@ export const articleRepo: ArticleRepo = {
     let articleId = 0;
 
     await db.transaction(async (tr) => {
-      try {
-        const result = await tr('article')
-          .insert({ ...params, authorId: currentUser.id })
-          .returning('id');
+      const [{ id }] = await tr('article')
+        .insert({ ...params, authorId: currentUser.id })
+        .returning('id');
 
-        articleId = result[0];
+      articleId = id;
 
-        await addTagsToArticle(tr, articleId, tagList);
-
-        await tr.commit();
-      } catch (error) {
-        await tr.rollback();
-        throw error;
-      }
+      await addTagsToArticle(tr, articleId, tagList);
     });
 
     const [query] = buildQuery({ id: articleId }, currentUser);
-    return await query.first();
+    return query.first();
   },
 
   async updateArticleBySlug(slug, { tagList, ...params }, currentUser) {

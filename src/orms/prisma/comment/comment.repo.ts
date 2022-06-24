@@ -18,7 +18,7 @@ type CommentResult = Pick<
 
 const mapCommentResult = (comment: CommentResult): CommentForResponse => ({
   ...comment,
-  author: mapProfileResult(comment.user),
+  author: mapProfileResult(comment.user).profile,
 });
 
 const getQueryOptions = (

@@ -3,18 +3,11 @@ import { Knex } from 'knex';
 import { User } from 'app/user/user.types';
 import { db } from 'orms/knex/db';
 import { NotFoundError } from 'errors';
+import { currentUser } from '../../../tests/factories/user.factory';
 
-export const buildProfileQuery = (
-  params: {
-    query?: Knex.QueryBuilder;
-    username?: string;
-    joinForeignKey?: string;
-  },
-  currentUser?: User,
-) => {
-  let following;
+const buildFollowingSelect = (currentUser?: User) => {
   if (currentUser) {
-    following = db
+    return db
       .select(
         db.raw(
           `coalesce((${db('userFollow')
@@ -25,54 +18,85 @@ export const buildProfileQuery = (
       )
       .as('following');
   } else {
-    following = db.raw('false AS "following"');
+    return db.raw('false AS "following"');
   }
+};
 
+export const buildProfileQuery = (
+  params: {
+    query?: Knex.QueryBuilder;
+    username?: string;
+    joinForeignKey?: string;
+    id?: number;
+  },
+  currentUser?: User,
+) => {
   const query = params.query || db('user');
-  query.select(db.raw('row_to_json("user".*) AS "author"'));
 
   if (params.username) {
     query.where('username', params.username);
   }
 
+  if (params.id) {
+    query.where('id', params.id);
+  }
+
+  const following = buildFollowingSelect(currentUser);
+
   if (params.joinForeignKey) {
-    query.join(
-      db('user').select('*', following).as('user'),
-      'user.id',
-      params.joinForeignKey,
-    );
+    query.select(db.raw('row_to_json("user".*) AS "author"'));
+    query
+      .select(
+        db.raw(
+          `json_build_object(` +
+            `'username', "user".username, 'bio', "user".bio, 'image', "user".image, 'following', "user".following` +
+            `) AS "author"`,
+        ),
+      )
+      .join(
+        db('user').select('*', following).as('user'),
+        'user.id',
+        params.joinForeignKey,
+      );
   } else {
-    query.select('*', following);
+    query.select('username', 'bio', 'image', following);
   }
 
   return query;
 };
 
-const getProfileByUsername = async (username: string, currentUser?: User) => {
-  const profile = await buildProfileQuery({ username }, currentUser).first();
-  if (!profile) throw new NotFoundError();
-  return profile;
-};
-
 export const profileRepo: ProfileRepo = {
-  getProfileByUsername,
+  async getProfileByUsername(username, currentUser) {
+    const profile = await buildProfileQuery({ username }, currentUser).first();
+    if (!profile) throw new NotFoundError();
+    return profile;
+  },
 
   async followByUsername(username, currentUser) {
-    const profile = await getProfileByUsername(username, currentUser);
+    const profile = await db('user')
+      .select('id', buildFollowingSelect(currentUser))
+      .where({ username })
+      .first();
+
+    if (!profile) throw new NotFoundError();
 
     if (!profile.following) {
       await db('userFollow').insert({
         followingId: profile.id,
         followerId: currentUser.id,
       });
-      profile.following = true;
     }
 
-    return profile;
+    return buildProfileQuery({ id: profile.id }, currentUser).first();
   },
 
   async unfollowByUsername(username, currentUser) {
-    const profile = await getProfileByUsername(username, currentUser);
+    const profile = await db('user')
+      .select('id', buildFollowingSelect(currentUser))
+      .where({ username })
+      .first();
+
+    if (!profile) throw new NotFoundError();
 
     if (profile.following) {
       await db('userFollow')
@@ -81,6 +105,6 @@ export const profileRepo: ProfileRepo = {
       profile.following = false;
     }
 
-    return profile;
+    return buildProfileQuery({ id: profile.id }, currentUser).first();
   },
 };

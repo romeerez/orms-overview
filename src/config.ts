@@ -10,13 +10,15 @@ assert(dbUrl);
 const jwtSecret = process.env.JWT_SECRET;
 assert(jwtSecret);
 
-export default {
-  env: {
-    production: nodeEnv === 'production',
-    development: nodeEnv === 'development',
-    test: nodeEnv === 'test',
-  },
+const env = {
+  production: nodeEnv === 'production',
+  development: nodeEnv === 'development',
+  test: nodeEnv === 'test',
+};
 
+export default {
+  env,
+  startServer: !env.test,
   dbUrl,
   jwtSecret,
 };

@@ -59,7 +59,7 @@ export class Article extends Model {
     selectTagList(query: QueryBuilder<Article>) {
       query.select(
         Tag.query()
-          .select(db.raw("coalesce(json_agg(tag), '[]')"))
+          .select(db.raw("coalesce(json_agg(tag ORDER BY tag.tag ASC), '[]')"))
           .join('articleTag', 'articleTag.tagId', 'tag.id')
           .where('articleTag.articleId', db.raw('article.id'))
           .as('tagList'),

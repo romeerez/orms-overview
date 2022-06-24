@@ -5,6 +5,9 @@ import { encryptPassword } from 'lib/password';
 import { Client } from 'pg';
 
 export default async () => {
+  // For prisma
+  process.env.DATABASE_URL = process.env.DATABASE_URL_TEST;
+
   const db = new Client({
     connectionString: process.env.DATABASE_URL_TEST,
   });

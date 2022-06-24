@@ -31,7 +31,7 @@ type ArticleResult = Pick<
 
 const mapArticleResult = (article: ArticleResult): ArticleForResponse => ({
   ...article,
-  author: mapProfileResult(article.user),
+  author: mapProfileResult(article.user).profile,
   tagList: article.articleTag.map(({ tag }) => tag.tag).sort(),
   favorited: Boolean(article.userArticleFavorite?.length),
 });

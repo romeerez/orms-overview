@@ -35,14 +35,11 @@ const buildQuery = ({
 
   const tagsQuery = em
     .qb(Tag, 'tag')
-    .select(`coalesce(json_agg(tag.tag), '[]') AS "tagList"`)
+    .select(
+      `coalesce(json_agg(tag.tag ORDER BY tag.tag ASC), '[]') AS "tagList"`,
+    )
     .join('articleTags', 'articleTags')
     .where({ articleTags: { articleId: knex.ref('article.id') } });
-
-  const favoritesCountQuery = em
-    .qb(UserArticleFavorite, 'favorite')
-    .select(`count(*)::integer AS "favoritesCount"`)
-    .where({ articleId: knex.ref('article.id') });
 
   const favoritedQuery =
     currentUser &&
@@ -125,10 +122,10 @@ const buildQuery = ({
           'title',
           'description',
           'body',
+          'favoritesCount',
           'createdAt',
           'updatedAt',
           `(${tagsQuery.getQuery()})`,
-          `(${favoritesCountQuery.getQuery()})`,
           favoritedQuery
             ? `coalesce((${favoritedQuery.getQuery()}), false) as favorited`
             : 'false::boolean as favorited',
@@ -319,12 +316,12 @@ export const articleRepo: ArticleRepo = {
             userId: currentUser.id,
           }),
         );
+
+        article.favoritesCount += 1;
+        await em.persistAndFlush(article);
       } catch (error) {
         if (!(error instanceof UniqueConstraintViolationException)) throw error;
       }
-
-      article.favoritesCount += 1;
-      await em.persistAndFlush(article);
 
       return article.id;
     });

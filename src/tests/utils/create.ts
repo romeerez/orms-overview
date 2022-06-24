@@ -1,5 +1,6 @@
 import pgPromise from 'pg-promise';
-import { db } from 'tests/utils/db';
+import { db as defaultDb } from 'tests/utils/db';
+import { Client, Pool } from 'pg';
 
 const pgp = pgPromise({
   capSQL: true,
@@ -12,8 +13,10 @@ export const create = async <T extends object | object[]>(
   record: object,
   {
     onConflict,
+    db = defaultDb,
   }: {
     onConflict?: string;
+    db?: Client | Pool;
   } = {},
 ): Promise<T> => {
   const result = await db.query(

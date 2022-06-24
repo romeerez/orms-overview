@@ -44,7 +44,7 @@ server.addContentTypeParser('empty', ((
 // eslint-disable-next-line
 server.setErrorHandler(errorHandler as any);
 
-if (!config.env.test) {
+if (config.startServer) {
   server.listen(process.env.PORT || 3000, (err, address) => {
     if (err) {
       console.error(err);

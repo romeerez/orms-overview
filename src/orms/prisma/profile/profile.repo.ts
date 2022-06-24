@@ -13,11 +13,14 @@ export type ProfileResult = Pick<
 
 export const mapProfileResult = (
   user: ProfileResult,
-): Profile & { id: number } => ({
-  ...user,
-  image: user.image || undefined,
-  bio: user.bio || undefined,
-  following: Boolean(user.userFollow_userTouserFollow_followingId?.length),
+): { id: number; profile: Profile } => ({
+  id: user.id,
+  profile: {
+    username: user.username,
+    image: user.image || null,
+    bio: user.bio || null,
+    following: Boolean(user.userFollow_userTouserFollow_followingId?.length),
+  },
 });
 
 export const getProfileQueryOptions = (currentUser?: User) => ({
@@ -52,14 +55,16 @@ const getProfileByUsername = async (username: string, currentUser?: User) => {
 };
 
 export const profileRepo: ProfileRepo = {
-  getProfileByUsername,
+  async getProfileByUsername(username, currentUser) {
+    return (await getProfileByUsername(username, currentUser)).profile;
+  },
 
   async followByUsername(username, currentUser) {
-    const profile = await getProfileByUsername(username, currentUser);
+    const { id, profile } = await getProfileByUsername(username, currentUser);
     if (!profile.following) {
       await client.userFollow.create({
         data: {
-          followingId: profile.id,
+          followingId: id,
           followerId: currentUser.id,
         },
       });
@@ -70,11 +75,11 @@ export const profileRepo: ProfileRepo = {
   },
 
   async unfollowByUsername(username, currentUser) {
-    const profile = await getProfileByUsername(username, currentUser);
+    const { id, profile } = await getProfileByUsername(username, currentUser);
     if (profile.following) {
       await client.userFollow.deleteMany({
         where: {
-          followingId: profile.id,
+          followingId: id,
           followerId: currentUser.id,
         },
       });

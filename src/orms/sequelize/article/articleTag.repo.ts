@@ -15,6 +15,7 @@ export const articleTagRepo = {
           },
         },
       ],
+      order: [['tag', 'asc']],
     });
 
     return tags.map(({ tag }) => tag);

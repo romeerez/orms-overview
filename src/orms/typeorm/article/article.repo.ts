@@ -292,12 +292,12 @@ export const articleRepo: ArticleRepo = {
 
     try {
       await dataSource.transaction(async (t) => {
-        const repo = dataSource.getRepository(Article);
+        const repo = t.getRepository(Article);
         const article = await repo.findOne({ where: { slug } });
         if (!article) throw new NotFoundError();
         id = article.id;
 
-        const favoriteRepo = dataSource.getRepository(UserArticleFavorite);
+        const favoriteRepo = t.getRepository(UserArticleFavorite);
         const favorite = favoriteRepo.create({
           articleId: id,
           userId: currentUser.id,
@@ -322,12 +322,12 @@ export const articleRepo: ArticleRepo = {
     let id = 0;
 
     await dataSource.transaction(async (t) => {
-      const repo = dataSource.getRepository(Article);
+      const repo = t.getRepository(Article);
       const article = await repo.findOne({ where: { slug } });
       if (!article) throw new NotFoundError();
       id = article.id;
 
-      const favoriteRepo = dataSource.getRepository(UserArticleFavorite);
+      const favoriteRepo = t.getRepository(UserArticleFavorite);
       const favorite = await favoriteRepo.findOneBy({
         articleId: id,
         userId: currentUser.id,

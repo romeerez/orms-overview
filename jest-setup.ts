@@ -1,15 +1,14 @@
 import 'dotenv/config';
 import {
-  patchPgClient,
+  patchPgForTransactions,
   startTransaction,
   rollbackTransaction,
-  closePg,
-} from 'tests/utils/patch-pg';
+} from 'pg-transactional-tests';
 import { isUnpatchableOrm } from './src/tests/utils/constants';
 import { db } from 'tests/utils/db';
 
 if (!isUnpatchableOrm) {
-  patchPgClient();
+  patchPgForTransactions();
 }
 
 import { orms } from 'orms/orms';
@@ -25,16 +24,15 @@ if (orm.initialize) {
 
 if (!isUnpatchableOrm) {
   beforeEach(async () => {
-    await startTransaction();
+    await startTransaction(db);
   });
 
   afterEach(async () => {
-    await rollbackTransaction();
+    await rollbackTransaction(db);
   });
 }
 
 afterAll(async () => {
   if (orm.close) orm.close();
-  closePg();
   await db.end();
 });

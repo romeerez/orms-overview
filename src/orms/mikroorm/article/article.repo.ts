@@ -320,6 +320,7 @@ export const articleRepo: ArticleRepo = {
         article.favoritesCount += 1;
         await em.persistAndFlush(article);
       } catch (error) {
+        await em.rollback();
         if (!(error instanceof UniqueConstraintViolationException)) throw error;
       }
 

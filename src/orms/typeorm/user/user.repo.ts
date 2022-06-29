@@ -14,9 +14,9 @@ export const userRepo: UserRepo = {
     } catch (error) {
       if (error instanceof QueryFailedError) {
         if (error.message.includes('duplicate key')) {
-          const isEmail = (error.driverError.messageDetail as string).includes(
-            'email',
-          );
+          const isEmail = (
+            error as unknown as { constraint: string }
+          ).constraint.includes('userEmailIndex');
           throw new UniqueViolationError(
             `User with such ${isEmail ? 'email' : 'username'} already exists`,
           );

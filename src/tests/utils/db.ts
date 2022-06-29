@@ -1,7 +1,5 @@
-import { Client, Pool } from 'pg';
+import { Client } from 'pg';
 
-const Connection = process.env.ORM !== 'sequelize' ? Pool : Client;
-
-export const db = new Connection({
+export const db = new Client({
   connectionString: process.env.DATABASE_URL_TEST,
 });

@@ -21,7 +21,7 @@ describe('articles endpoints', () => {
   clearDatabaseForUnpatchableOrms();
 
   describe('GET /articles', () => {
-    it.only('should list all articles ordered by createdAt, default limit is 20', async () => {
+    it('should list all articles ordered by createdAt, default limit is 20', async () => {
       await Promise.all(
         new Array(21).fill(null).map(() => articleFactory.create()),
       );

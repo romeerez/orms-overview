@@ -13,10 +13,16 @@ export default async () => {
   });
   await db.connect();
   await db.query('TRUNCATE TABLE "user" CASCADE');
-  await create('user', {
-    ...currentUser,
-    password: await encryptPassword(currentUser.password),
-  });
+  await create(
+    'user',
+    {
+      ...currentUser,
+      password: await encryptPassword(currentUser.password),
+    },
+    {
+      db,
+    },
+  );
 
   await db.end();
 };

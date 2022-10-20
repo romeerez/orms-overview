@@ -49,6 +49,7 @@
     "fishery": "^1.2.0",
     "jsonwebtoken": "^8.5.1",
     "knex": "^2.1.0",
+    "kysely": "^0.22.0",
     "objection": "^3.0.1",
     "pg": "^8.7.3",
     "pg-hstore": "^2.3.3",

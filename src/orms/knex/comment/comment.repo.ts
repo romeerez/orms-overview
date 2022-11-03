@@ -29,7 +29,7 @@ export const commentRepo: CommentRepo = {
     const article = await db('article').select('id').where({ slug }).first();
     if (!article) throw new NotFoundError();
 
-    const { id } = await db('comment')
+    const [{ id }] = await db('comment')
       .insert({ ...params, articleId: article.id, authorId: currentUser.id })
       .returning('id');
 

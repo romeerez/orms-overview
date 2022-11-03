@@ -9,20 +9,21 @@ const buildQuery = (
   },
   currentUser?: User,
 ) => {
-  const query = db.selectFrom('article').select([
-    'article.id',
-    'article.authorId',
-    'article.slug',
-    'article.title',
-    'article.description',
-    'article.body',
-    'article.favoritesCount',
-    'article.updatedAt',
-    'article.updatedAt',
-    'article.createdAt',
-    // cannot do sub query
-    // sql(db.selectFrom('tag')).as('tagList'),
-  ]);
+  const query = db
+    .selectFrom('article')
+    .select([
+      'article.id',
+      'article.authorId',
+      'article.slug',
+      'article.title',
+      'article.description',
+      'article.body',
+      'article.favoritesCount',
+      'article.updatedAt',
+      'article.updatedAt',
+      'article.createdAt',
+      (q) => q.selectFrom('tag').select('tag').as('tagList'),
+    ]);
 };
 
 export const articleRepo: ArticleRepo = {

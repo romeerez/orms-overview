@@ -10,7 +10,8 @@ export type OrmName =
   | 'knex'
   | 'prisma'
   | 'objection'
-  | 'mikroorm';
+  | 'mikroorm'
+  | 'porm';
 
 export type OrmInterface = {
   initialize?(): Promise<unknown> | unknown;

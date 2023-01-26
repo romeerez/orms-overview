@@ -1,7 +1,7 @@
-import { Model } from '../model';
-import { ArticleTagModel } from '../article/articleTag.model';
+import { BaseTable } from '../baseTable';
+import { ArticleTagTable } from '../article/articleTag.table';
 
-export class TagModel extends Model {
+export class TagTable extends BaseTable {
   table = 'tag';
   columns = this.setColumns((t) => ({
     id: t.serial().primaryKey(),
@@ -9,7 +9,7 @@ export class TagModel extends Model {
   }));
 
   relations = {
-    articleTags: this.hasMany(() => ArticleTagModel, {
+    articleTags: this.hasMany(() => ArticleTagTable, {
       required: true,
       primaryKey: 'id',
       foreignKey: 'tagId',

@@ -1,27 +1,27 @@
-import { Model } from '../model';
-import { TagModel } from '../tag/tag.model';
-import { ArticleModel } from './article.model';
+import { BaseTable } from '../baseTable';
+import { TagTable } from '../tag/tag.table';
+import { ArticleTable } from './article.table';
 
-export class ArticleTagModel extends Model {
+export class ArticleTagTable extends BaseTable {
   table = 'articleTag';
   columns = this.setColumns((t) => ({
     id: t.serial().primaryKey(),
     articleId: t.integer().primaryKey().index(),
     tagId: t
       .integer()
-      .foreignKey(() => TagModel, 'id')
+      .foreignKey(() => TagTable, 'id')
       .index(),
     ...t.unique(['articleId', 'tagId']),
   }));
 
   relations = {
-    article: this.belongsTo(() => ArticleModel, {
+    article: this.belongsTo(() => ArticleTable, {
       required: true,
       primaryKey: 'id',
       foreignKey: 'articleId',
     }),
 
-    tag: this.belongsTo(() => TagModel, {
+    tag: this.belongsTo(() => TagTable, {
       required: true,
       primaryKey: 'id',
       foreignKey: 'tagId',

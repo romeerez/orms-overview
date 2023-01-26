@@ -1,12 +1,12 @@
 import { orchidORM } from 'orchid-orm';
 import config from '../../config';
-import { ArticleModel } from './article/article.model';
-import { ArticleTagModel } from './article/articleTag.model';
-import { CommentModel } from './comment/comment.model';
-import { TagModel } from './tag/tag.model';
-import { UserModel } from './user/user.model';
-import { UserArticleFavoriteModel } from './user/userArticleFavorite.model';
-import { UserFollowModel } from './user/userFollow.model';
+import { ArticleTable } from './article/article.table';
+import { ArticleTagTable } from './article/articleTag.table';
+import { CommentTable } from './comment/comment.table';
+import { TagTable } from './tag/tag.table';
+import { UserTable } from './user/user.table';
+import { UserArticleFavoriteTable } from './user/userArticleFavorite.table';
+import { UserFollowTable } from './user/userFollow.table';
 
 export type Db = typeof db;
 export const db = orchidORM(
@@ -15,12 +15,12 @@ export const db = orchidORM(
     log: false,
   },
   {
-    article: ArticleModel,
-    articleTag: ArticleTagModel,
-    comment: CommentModel,
-    tag: TagModel,
-    user: UserModel,
-    userArticleFavorite: UserArticleFavoriteModel,
-    userFollow: UserFollowModel,
+    article: ArticleTable,
+    articleTag: ArticleTagTable,
+    comment: CommentTable,
+    tag: TagTable,
+    user: UserTable,
+    userArticleFavorite: UserArticleFavoriteTable,
+    userFollow: UserFollowTable,
   },
 );

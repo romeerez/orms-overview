@@ -1,7 +1,7 @@
-import { createModel } from 'orchid-orm';
+import { createBaseTable } from 'orchid-orm';
 import { columnTypes } from 'pqb';
 
-export const Model = createModel({
+export const BaseTable = createBaseTable({
   columnTypes: {
     ...columnTypes,
     text: (min = 0, max = Infinity) => columnTypes.text(min, max),

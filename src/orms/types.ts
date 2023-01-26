@@ -11,7 +11,7 @@ export type OrmName =
   | 'prisma'
   | 'objection'
   | 'mikroorm'
-  | 'porm';
+  | 'orchid-orm';
 
 export type OrmInterface = {
   initialize?(): Promise<unknown> | unknown;

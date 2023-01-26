@@ -3,21 +3,24 @@ import { db } from '../database';
 import { ForbiddenError, NotFoundError } from '../../../errors';
 import { User } from '../../../app/user/user.types';
 import { columnTypes, raw } from 'pqb';
-import { createRepo } from 'porm';
+import { createRepo } from 'orchid-orm';
 
 export const commentRepo = createRepo(db.comment, {
-  defaultSelect(q, currentUser: User | undefined) {
-    return q.select('id', 'body', 'createdAt', 'updatedAt', {
-      author: (q) =>
-        q.author.select('username', 'bio', 'image', {
-          following: currentUser
-            ? (q) => q.followers.where({ followerId: currentUser.id }).exists()
-            : raw(columnTypes.boolean(), 'false'),
-        }),
-    });
-  },
-  filterBySlug(q, slug: string) {
-    return q.join('article', (q) => q.where({ slug }));
+  queryMethods: {
+    defaultSelect(q, currentUser: User | undefined) {
+      return q.select('id', 'body', 'createdAt', 'updatedAt', {
+        author: (q) =>
+          q.author.select('username', 'bio', 'image', {
+            following: currentUser
+              ? (q) =>
+                  q.followers.where({ followerId: currentUser.id }).exists()
+              : db.comment.raw((t) => t.boolean(), 'false'),
+          }),
+      });
+    },
+    filterBySlug(q, slug: string) {
+      return q.join('article', (q) => q.where({ slug }));
+    },
   },
 });
 
@@ -33,7 +36,7 @@ export default {
     const article = await db.article.findByOptional({ slug });
     if (!article) throw new NotFoundError();
 
-    const id = await db.comment.get('id').insert({
+    const id = await db.comment.get('id').create({
       ...params,
       authorId: currentUser.id,
       articleId: article.id,

@@ -1,4 +1,4 @@
-import { porm } from 'porm';
+import { orchidORM } from 'orchid-orm';
 import config from '../../config';
 import { ArticleModel } from './article/article.model';
 import { ArticleTagModel } from './article/articleTag.model';
@@ -9,10 +9,10 @@ import { UserArticleFavoriteModel } from './user/userArticleFavorite.model';
 import { UserFollowModel } from './user/userFollow.model';
 
 export type Db = typeof db;
-export const db = porm(
+export const db = orchidORM(
   {
-    connectionString: config.dbUrl,
-    log: true,
+    databaseURL: config.dbUrl,
+    log: false,
   },
   {
     article: ArticleModel,

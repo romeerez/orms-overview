@@ -8,7 +8,7 @@ import {
   clearDb,
   connectAllORMs,
   disconnectAllORMs,
-  formatMsAsS,
+  formatMs,
   getMs,
   ormNames,
 } from './utils';
@@ -168,7 +168,7 @@ async function measureORMs() {
 
     const end = getMs();
 
-    console.log(`${ormName}: ${formatMsAsS(end - start)}`);
+    console.log(`${ormName}: ${formatMs(end - start)}`);
   }
 }
 

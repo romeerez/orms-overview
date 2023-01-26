@@ -1,70 +1,73 @@
 import { ArticleRepo } from '../../types';
 import { db } from '../database';
 import { ForbiddenError, NotFoundError } from '../../../errors';
-import { createRepo } from 'porm';
+import { createRepo } from 'orchid-orm';
 import { User } from '../../../app/user/user.types';
-import { columnTypes, raw } from 'pqb';
 import { tagRepo } from '../tag/tag.repo';
 import { userRepo } from '../user/user.repo';
 
 const articleRepo = createRepo(db.article, {
-  defaultSelect(q, currentUser: User | undefined) {
-    return q.select(
-      'id',
-      'slug',
-      'title',
-      'description',
-      'body',
-      'createdAt',
-      'updatedAt',
-      'favoritesCount',
-      {
-        tagList: (q) => q.tags.order('tag').pluck('tag'),
-        author: (q) => userRepo(q.author).defaultSelect(currentUser),
-        favorited: currentUser
-          ? (q) =>
-              q.userArticleFavorites.where({ userId: currentUser.id }).exists()
-          : raw(columnTypes.boolean(), 'false'),
-      },
-    );
-  },
-  filterByParams(
-    q,
-    params: {
-      tag?: string;
-      author?: string;
-      fromFollowedAuthors?: boolean;
-      favorited?: string;
-    },
-    currentUser: User | undefined,
-  ) {
-    if (params.tag) {
-      q = q.whereExists('tags', (q) => q.where({ tag: params.tag }));
-    }
-
-    if (params.author || (currentUser && params.fromFollowedAuthors)) {
-      q = q.whereExists('author', (q) => {
-        if (params.author) {
-          q = q.where({ username: params.author });
-        }
-
-        if (currentUser && params.fromFollowedAuthors) {
-          q = q.whereExists('followers', (q) =>
-            q.where({ followerId: currentUser.id }),
-          );
-        }
-
-        return q;
-      });
-    }
-
-    if (params.favorited) {
-      q = q.whereExists('userArticleFavorites', (q) =>
-        q.whereExists('user', (q) => q.where({ username: params.favorited })),
+  queryMethods: {
+    defaultSelect(q, currentUser: User | undefined) {
+      return q.select(
+        'id',
+        'slug',
+        'title',
+        'description',
+        'body',
+        'createdAt',
+        'updatedAt',
+        'favoritesCount',
+        {
+          tagList: (q) => q.tags.order('tag').pluck('tag'),
+          author: (q) => userRepo(q.author).defaultSelect(currentUser),
+          favorited: currentUser
+            ? (q) =>
+                q.userArticleFavorites
+                  .where({ userId: currentUser.id })
+                  .exists()
+            : db.article.raw((t) => t.boolean(), 'false'),
+        },
       );
-    }
+    },
+    filterByParams(
+      q,
+      params: {
+        tag?: string;
+        author?: string;
+        fromFollowedAuthors?: boolean;
+        favorited?: string;
+      },
+      currentUser: User | undefined,
+    ) {
+      if (params.tag) {
+        q = q.whereExists('tags', (q) => q.where({ tag: params.tag }));
+      }
 
-    return q;
+      if (params.author || (currentUser && params.fromFollowedAuthors)) {
+        q = q.whereExists('author', (q) => {
+          if (params.author) {
+            q = q.where({ username: params.author });
+          }
+
+          if (currentUser && params.fromFollowedAuthors) {
+            q = q.whereExists('followers', (q) =>
+              q.where({ followerId: currentUser.id }),
+            );
+          }
+
+          return q;
+        });
+      }
+
+      if (params.favorited) {
+        q = q.whereExists('userArticleFavorites', (q) =>
+          q.whereExists('user', (q) => q.where({ username: params.favorited })),
+        );
+      }
+
+      return q;
+    },
   },
 });
 
@@ -95,7 +98,7 @@ export default {
   },
 
   async createArticle({ tagList, ...params }, currentUser) {
-    const id = await db.article.get('id').insert({
+    const id = await db.article.get('id').create({
       ...params,
       authorId: currentUser.id,
       articleTags: {

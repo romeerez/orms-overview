@@ -3,15 +3,17 @@ import { db } from '../database';
 import { UniqueViolationError } from '../../../errors';
 import { User } from '../../../app/user/user.types';
 import { columnTypes, raw } from 'pqb';
-import { createRepo } from 'porm';
+import { createRepo } from 'orchid-orm';
 
 export const userRepo = createRepo(db.user, {
-  defaultSelect(q, currentUser: User | undefined) {
-    return q.select('username', 'bio', 'image', {
-      following: currentUser
-        ? (q) => q.followers.where({ followerId: currentUser.id }).exists()
-        : raw(columnTypes.boolean(), 'false'),
-    });
+  queryMethods: {
+    defaultSelect(q, currentUser: User | undefined) {
+      return q.select('username', 'bio', 'image', {
+        following: currentUser
+          ? (q) => q.followers.where({ followerId: currentUser.id }).exists()
+          : db.user.raw((t) => t.boolean(), 'false'),
+      });
+    },
   },
 });
 

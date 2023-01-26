@@ -27,6 +27,6 @@ export function getMs() {
   return time[0] * 1000 + time[1] / 1000000;
 }
 
-export function formatMsAsS(ms: number) {
-  return `${Math.round(ms / 10) / 100}s`;
+export function formatMs(ms: number) {
+  return `${Math.round(ms)}ms`;
 }

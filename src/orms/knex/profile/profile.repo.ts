@@ -3,7 +3,6 @@ import { Knex } from 'knex';
 import { User } from 'app/user/user.types';
 import { db } from 'orms/knex/db';
 import { NotFoundError } from 'errors';
-import { currentUser } from '../../../tests/factories/user.factory';
 
 const buildFollowingSelect = (currentUser?: User) => {
   if (currentUser) {

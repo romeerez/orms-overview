@@ -1,10 +1,12 @@
 import { TagRepo } from '../../types';
 import { db } from '../database';
-import { createRepo } from 'porm';
+import { createRepo } from 'orchid-orm';
 
 export const tagRepo = createRepo(db.tag, {
-  deleteUnused(q) {
-    return q.whereNotExists('articleTags').delete();
+  queryMethods: {
+    deleteUnused(q) {
+      return q.whereNotExists('articleTags').delete();
+    },
   },
 });
 

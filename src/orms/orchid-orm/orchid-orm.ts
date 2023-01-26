@@ -6,7 +6,7 @@ import commentRepo from './comment/comment.repo';
 import profileRepo from './profile/profile.repo';
 import tagRepo from './tag/tag.repo';
 
-export const porm: OrmInterface = {
+export const orchidOrm: OrmInterface = {
   close: () => db.$close(),
   articleRepo,
   commentRepo,
